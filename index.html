@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<script>
+/* ================== CONFIGURACIÓN (lo único que debes cambiar) ==================
+   Pega aquí el link de tu Apps Script (Implementar > Aplicación web), el que termina en /exec */
+window.API_URL = 'https://script.google.com/macros/s/AKfycbz3l_EROxMCw6fTnGtOhqLPdLwWd0HiK1jADKakaUicCC10nvw-3bNKIpAsTddSypoNQg/exec';
+/* ================================================================================ */
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Asistencia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" defer></script>
+<style>
+/* Lectura de estilo (referencia del usuario): índigo #5B57F0 · lavanda #F6F6FC · tarjetas blancas con borde lila y sombra suave · chips píldora con ícono · títulos de sección en color de marca */
+:root{
+  --brand:#5B57F0; --brand-600:#4A45D8; --brand-700:#3B36B8; --brand-50:#F0EFFE; --brand-100:#E2E0FD; --brand-200:#C9C6FB;
+  --violet:#8B5CF6;
+  --bg:#F6F6FC; --card:#FFFFFF; --line:#ECEBFB; --line-2:#DCDAF5; --text:#16163A; --muted:#5E5E80; --soft:#9595B4;
+  --ok:#16A34A; --ok-50:#E9F8EF; --warn:#D97706; --warn-50:#FFF5E6; --danger:#E5484D; --danger-50:#FFF0F1; --info-50:#EEF6FF;
+  --r-sm:12px; --r:18px; --r-lg:24px; --pill:999px;
+  --sh-1:0 1px 2px rgba(22,22,58,.05);
+  --sh-2:0 10px 30px rgba(91,87,240,.09);
+  --sh-3:0 18px 50px rgba(22,22,58,.16);
+  --sh-brand:0 10px 24px rgba(91,87,240,.38);
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --tab-h:70px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:15px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+body{background:radial-gradient(900px 500px at 100% -10%,#E9E6FF 0,transparent 60%),radial-gradient(700px 400px at -10% 110%,#E8EEFF 0,transparent 60%),var(--bg);background-attachment:fixed}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+a{color:var(--brand-600)}
+[hidden]{display:none!important}
+.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.i-sm{width:16px;height:16px}.i-lg{width:26px;height:26px}
+:focus-visible{outline:3px solid var(--brand-200);outline-offset:2px}
+
+/* Botones */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;padding:0 22px;border-radius:var(--pill);border:1.5px solid transparent;font-weight:700;font-size:15px;white-space:nowrap;transition:transform .12s var(--ease),background .15s,box-shadow .15s,border-color .15s;text-decoration:none}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-primary{background:var(--brand);color:#fff;box-shadow:var(--sh-brand)}
+.btn-primary:hover:not(:disabled){background:var(--brand-600)}
+.btn-secondary{background:var(--brand-50);color:var(--brand-700)}
+.btn-secondary:hover:not(:disabled){background:var(--brand-100)}
+.btn-outline{background:#fff;border-color:var(--line-2);color:var(--text)}
+.btn-outline:hover:not(:disabled){border-color:var(--brand-200);color:var(--brand-700)}
+.btn-ghost{background:transparent;color:var(--muted);padding:0 12px}
+.btn-ghost:hover{color:var(--brand-700);background:var(--brand-50)}
+.btn-danger{background:transparent;color:var(--danger);padding:0 12px}
+.btn-danger:hover{background:var(--danger-50)}
+.btn-sm{height:38px;padding:0 14px;font-size:13.5px}
+.btn-block{width:100%}
+.ibtn{width:44px;height:44px;border-radius:14px;border:1.5px solid var(--line);background:#fff;display:inline-grid;place-items:center;color:var(--text);box-shadow:var(--sh-1);transition:transform .12s var(--ease)}
+.ibtn:active{transform:scale(.94)}
+.ibtn:hover{color:var(--brand-700);border-color:var(--brand-200)}
+
+/* Layout */
+.shell{min-height:100vh;min-height:100dvh}
+.side{display:none}
+.main{max-width:1200px;margin:0 auto;padding:0 16px calc(var(--tab-h) + 28px + env(safe-area-inset-bottom))}
+.hdr{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:14px 0 12px;margin:0 -16px;padding-left:16px;padding-right:16px;background:rgba(246,246,252,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);transition:padding .2s var(--ease),box-shadow .2s}
+.hdr.compact{padding-top:8px;padding-bottom:8px;box-shadow:0 1px 0 var(--line)}
+.hdr .who{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.hdr .who small{display:block;color:var(--brand);font-weight:700;font-size:13px}
+.hdr .who b{display:block;font-size:17px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr .acts{display:flex;gap:8px}
+#view{display:flex;flex-direction:column;gap:18px}
+
+/* Barra inferior */
+.tabbar{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));height:var(--tab-h);z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1.5px solid var(--line);border-radius:26px;box-shadow:var(--sh-3);display:grid;grid-template-columns:repeat(5,1fr);align-items:center;max-width:620px;margin:0 auto}
+.tabbar button{border:0;background:transparent;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11.5px;font-weight:600;color:var(--soft)}
+.tabbar button.on{color:var(--brand)}
+.tabbar button.on .i{stroke-width:2.4}
+.tabbar .fab{position:relative}
+.tabbar .fab span.c{width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--violet));display:grid;place-items:center;color:#fff;box-shadow:var(--sh-brand);margin-top:-30px;border:4px solid #fff;transition:transform .15s var(--ease)}
+.tabbar .fab:active span.c{transform:scale(.92)}
+.tabbar .fab em{font-style:normal;color:var(--brand-700);margin-top:1px}
+
+/* Tarjetas */
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:22px;box-shadow:var(--sh-2);padding:18px}
+.card.tight{padding:14px}
+.sec{display:flex;align-items:center;justify-content:space-between;margin:4px 2px -6px}
+.sec h3{margin:0;font-size:18px;color:var(--brand-700);letter-spacing:-.01em}
+.sec a,.sec button.link{font-size:13.5px;font-weight:600;color:var(--brand);background:none;border:0;text-decoration:none}
+.muted{color:var(--muted)}.soft{color:var(--soft)}
+
+/* Héroe */
+.hero{position:relative;overflow:hidden;border-radius:26px;padding:22px;color:#fff;background:linear-gradient(135deg,#5B57F0 0%,#7356F2 55%,#9B6BF6 100%);box-shadow:var(--sh-brand)}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(2px);pointer-events:none}
+.hero::before{width:220px;height:220px;right:-60px;top:-80px;background:radial-gradient(circle,rgba(255,255,255,.28),rgba(255,255,255,0) 70%)}
+.hero::after{width:160px;height:160px;left:-50px;bottom:-70px;background:radial-gradient(circle,rgba(167,139,250,.55),rgba(167,139,250,0) 70%)}
+.hero > *{position:relative;z-index:1}
+.hero small{opacity:.85;font-weight:600}
+.hero h2{margin:2px 0 0;font-size:24px;letter-spacing:-.02em;line-height:1.2}
+.hero .big{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.hero .big span{font-size:20px;font-weight:700;opacity:.85}
+.glass{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:var(--pill);padding:6px 12px;font-size:12.5px;font-weight:700;backdrop-filter:blur(6px)}
+.hero-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.progress{height:8px;border-radius:8px;background:rgba(255,255,255,.25);overflow:hidden;margin-top:14px}
+.progress i{display:block;height:100%;width:0;background:#fff;border-radius:8px;transition:width .9s var(--ease)}
+.hero .ill{position:absolute;right:14px;bottom:10px;width:120px;opacity:.95;z-index:0}
+
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.kpi{display:flex;flex-direction:column;gap:6px;padding:16px}
+.kpi .ic{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;background:var(--brand-50);color:var(--brand)}
+.kpi .ic.ok{background:var(--ok-50);color:var(--ok)}.kpi .ic.warn{background:var(--warn-50);color:var(--warn)}.kpi .ic.bad{background:var(--danger-50);color:var(--danger)}
+.kpi b{font-size:26px;letter-spacing:-.02em;line-height:1}
+.kpi span{font-size:13px;color:var(--muted);font-weight:500}
+
+/* Chips */
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:2px;margin:0 -2px;scroll-snap-type:x proximity}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:var(--pill);border:1.5px solid var(--brand-200);background:#fff;color:var(--brand-700);font-weight:600;font-size:13.5px;scroll-snap-align:start;transition:all .15s var(--ease)}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff;box-shadow:var(--sh-brand)}
+.tag{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 10px;border-radius:var(--pill);font-size:12px;font-weight:700;background:var(--brand-50);color:var(--brand-700);white-space:nowrap}
+.tag.ok{background:var(--ok-50);color:var(--ok)}.tag.warn{background:var(--warn-50);color:var(--warn)}.tag.bad{background:var(--danger-50);color:var(--danger)}.tag.gray{background:#F1F1F7;color:var(--muted)}
+.tag::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.tag.nodot::before{display:none}
+
+/* Listas */
+.list{display:flex;flex-direction:column}
+.row{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);background:none;border-left:0;border-right:0;border-top:0;width:100%;text-align:left;border-radius:0}
+.row:last-child{border-bottom:0}
+button.row{cursor:pointer;transition:background .15s}
+button.row:hover{background:var(--brand-50);border-radius:14px}
+.row .tx{flex:1;min-width:0}
+.row .tx b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .tx small{display:block;color:var(--muted);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .end{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:13px;font-weight:600}
+.av{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-weight:800;font-size:14px;color:#fff;flex:none;letter-spacing:.02em}
+.av.lg{width:64px;height:64px;border-radius:20px;font-size:22px}
+.stack{display:flex}
+.stack .av{width:32px;height:32px;border-radius:50%;font-size:11px;border:2.5px solid #fff;margin-right:-9px}
+.stack .more{background:rgba(255,255,255,.25);color:#fff}
+
+/* Timeline */
+.tl{display:flex;flex-direction:column;gap:2px}
+.tl-i{display:flex;gap:12px;align-items:flex-start;padding:8px 0}
+.tl-i .dot{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;flex:none}
+.tl-i .dot.in{background:var(--ok-50);color:var(--ok)}.tl-i .dot.out{background:var(--brand-50);color:var(--brand)}
+.tl-i b{display:block}.tl-i small{color:var(--muted)}
+
+/* Formularios */
+.field{display:flex;flex-direction:column;gap:6px}
+.field label,.lbl{font-size:13px;font-weight:600;color:var(--muted)}
+.inp{height:48px;border:1.5px solid var(--line-2);border-radius:14px;padding:0 14px;background:#fff;width:100%;min-width:0;transition:border-color .15s,box-shadow .15s}
+.inp:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-50)}
+select.inp{appearance:none;-webkit-appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235E5E80' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") right 14px center no-repeat;padding-right:36px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pref{display:flex;align-items:center;border:1.5px solid var(--line-2);border-radius:14px;background:#fff;overflow:hidden}
+.pref span{padding:0 0 0 14px;color:var(--muted);font-weight:600;white-space:nowrap}
+.pref .inp{border:0;box-shadow:none}
+.pref:focus-within{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-50)}
+.days{display:flex;gap:6px}
+.days button{flex:1;height:42px;border-radius:12px;border:1.5px solid var(--line-2);background:#fff;font-weight:700;color:var(--muted)}
+.days button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.seg{display:flex;background:var(--brand-50);border-radius:16px;padding:4px;gap:4px}
+.seg button{flex:1;border:0;background:transparent;border-radius:12px;padding:10px 8px;font-weight:700;font-size:13.5px;color:var(--brand-700)}
+.seg button.on{background:#fff;box-shadow:var(--sh-1);color:var(--text)}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px;border:1.5px solid var(--line);border-radius:16px;background:#fff}
+.tg b{display:block;font-size:14.5px}.tg small{color:var(--muted);font-size:12.5px}
+.sw{position:relative;width:48px;height:28px;flex:none}
+.sw input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.sw i{position:absolute;inset:0;border-radius:14px;background:var(--line-2);transition:.2s var(--ease)}
+.sw i::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.18);transition:transform .25s cubic-bezier(.5,1.6,.4,1)}
+.sw input:checked+i{background:var(--brand)}
+.sw input:checked+i::after{transform:translateX(20px)}
+input[type=range]{width:100%;accent-color:var(--brand)}
+
+/* Hojas */
+.sheet-wrap{position:fixed;inset:0;z-index:60}
+.scrim{position:absolute;inset:0;background:rgba(22,22,58,.32);opacity:0;transition:opacity .25s}
+.sheet-wrap.show .scrim{opacity:1}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:90dvh;background:#fff;border-radius:28px 28px 0 0;box-shadow:var(--sh-3);display:flex;flex-direction:column;transform:translateY(100%);transition:transform .3s var(--ease)}
+.sheet-wrap.show .sheet{transform:none}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:var(--line-2);margin:10px auto 0;flex:none;cursor:grab;touch-action:none}
+.sheet .sh-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 20px 6px;flex:none}
+.sheet .sh-h h3{margin:0;font-size:19px;letter-spacing:-.01em}
+.sheet .sh-b{overflow:auto;padding:8px 20px 20px;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain}
+.sheet .sh-f{display:flex;gap:10px;padding:12px 20px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--line);flex:none;flex-wrap:wrap}
+.sheet .sh-f .btn{flex:1}
+
+/* Pantallas sueltas */
+.solo{min-height:100vh;min-height:100dvh;display:grid;place-items:center;padding:24px 18px calc(24px + env(safe-area-inset-bottom))}
+.solo-card{width:min(440px,100%);display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.solo-card h1{margin:0;font-size:26px;letter-spacing:-.02em;line-height:1.2}
+.solo-card p{margin:0;color:var(--muted)}
+.solo-card .card{width:100%}
+.code-inp{height:64px;width:100%;text-align:center;font-size:30px;font-weight:800;letter-spacing:.42em;text-transform:uppercase;border:2px solid var(--line-2);border-radius:20px;background:#fff;padding-left:.42em}
+.code-inp:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 5px var(--brand-50)}
+.radar{position:relative;width:150px;height:150px;display:grid;place-items:center}
+.radar::before,.radar::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--brand);opacity:.18;animation:pulse 1.8s var(--ease) infinite}
+.radar::after{animation-delay:.9s}
+.radar .core{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--violet));display:grid;place-items:center;color:#fff;box-shadow:var(--sh-brand);position:relative;z-index:1}
+@keyframes pulse{0%{transform:scale(.45);opacity:.35}100%{transform:scale(1);opacity:0}}
+.steps{width:100%;display:flex;flex-direction:column;gap:8px;text-align:left}
+.step{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#fff;border:1.5px solid var(--line);font-weight:600}
+.step .st{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--brand-50);color:var(--brand);flex:none}
+.step.ok .st{background:var(--ok-50);color:var(--ok)}.step.bad .st{background:var(--danger-50);color:var(--danger)}.step.warn .st{background:var(--warn-50);color:var(--warn)}
+.spin{width:14px;height:14px;border-radius:50%;border:2.5px solid var(--brand-100);border-top-color:var(--brand);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.check{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;background:var(--ok);box-shadow:0 14px 34px rgba(22,163,74,.38);animation:pop .5s cubic-bezier(.5,1.6,.4,1)}
+.check.out{background:linear-gradient(135deg,var(--brand),var(--violet));box-shadow:var(--sh-brand)}
+.check.bad{background:var(--danger);box-shadow:0 14px 34px rgba(229,72,77,.35)}
+.check svg{width:60px;height:60px;stroke:#fff;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.check path{stroke-dasharray:60;stroke-dashoffset:60;animation:draw .5s .25s var(--ease) forwards}
+@keyframes pop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes draw{to{stroke-dashoffset:0}}
+.bigtime{font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--text)}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:320px}
+.keypad button{height:66px;border-radius:22px;border:1.5px solid var(--line);background:#fff;font-size:24px;font-weight:700;box-shadow:var(--sh-1);transition:transform .1s var(--ease),background .15s}
+.keypad button:active{transform:scale(.94);background:var(--brand-50)}
+.keypad button.k-sec{background:transparent;border-color:transparent;box-shadow:none;color:var(--muted);font-size:15px}
+.dots6{display:flex;gap:12px;justify-content:center;margin:6px 0}
+.dots6 i{width:14px;height:14px;border-radius:50%;background:var(--line-2);transition:transform .2s cubic-bezier(.5,1.6,.4,1),background .15s}
+.dots6 i.on{background:var(--brand);transform:scale(1.15)}
+.dots6.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+
+/* Pantalla QR (kiosco) */
+.kiosk{min-height:100vh;min-height:100dvh;padding:24px;display:flex;flex-direction:column;gap:20px;background:linear-gradient(160deg,#1E1B4B 0%,#3B36B8 55%,#6D4AE6 100%);color:#fff;position:relative;overflow:hidden}
+.kiosk::before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;right:-160px;top:-200px;background:radial-gradient(circle,rgba(167,139,250,.45),transparent 70%)}
+.kiosk > *{position:relative;z-index:1}
+.k-top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.k-top h1{margin:0;font-size:24px;letter-spacing:-.02em}
+.k-top small{opacity:.8;font-weight:600}
+.k-clock{font-size:44px;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.k-main{flex:1;display:grid;gap:20px;align-items:center}
+.k-qr{background:#fff;color:var(--text);border-radius:32px;padding:26px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 30px 80px rgba(0,0,0,.35);max-width:520px;width:100%;margin:0 auto}
+.k-qr .qrbox{width:min(70vw,58vh,420px);aspect-ratio:1;display:grid;place-items:center;transition:opacity .25s}
+.k-qr .qrbox svg{width:100%;height:100%}
+.k-qr h2{margin:0;font-size:20px;text-align:center;letter-spacing:-.01em}
+.k-ring{display:flex;align-items:center;gap:10px;color:var(--muted);font-weight:600;font-size:14px}
+.k-ring svg{width:34px;height:34px;transform:rotate(-90deg)}
+.k-ring circle{fill:none;stroke-width:4}
+.k-feed{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:26px;padding:18px;backdrop-filter:blur(8px)}
+.k-feed h3{margin:0 0 8px;font-size:16px;opacity:.9}
+.k-feed .row{border-bottom-color:rgba(255,255,255,.12)}
+.k-feed .row small{color:rgba(255,255,255,.7)}
+.k-feed .tag{background:rgba(255,255,255,.18);color:#fff}
+
+/* Animaciones */
+.rise{opacity:0;transform:translateY(8px);animation:rise .45s var(--ease) forwards;animation-delay:var(--d,0ms)}
+@keyframes rise{to{opacity:1;transform:none}}
+.skel{background:linear-gradient(90deg,#EEEDF9 25%,#F7F6FD 50%,#EEEDF9 75%);background-size:200% 100%;animation:shim 1.2s infinite;border-radius:14px}
+@keyframes shim{to{background-position:-200% 0}}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:26px 10px;color:var(--muted)}
+.empty svg.ill{width:120px;height:auto}
+.empty b{color:var(--text);font-size:16px}
+
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-24px);background:#16163A;color:#fff;padding:12px 18px;border-radius:16px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:.25s var(--ease);z-index:90;max-width:92vw;text-align:center;box-shadow:var(--sh-3)}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.err{background:var(--danger)}
+.loader{position:fixed;inset:0;z-index:80;background:rgba(246,246,252,.7);display:grid;place-items:center;backdrop-filter:blur(2px)}
+.loader .spin{width:38px;height:38px;border-width:4px}
+#printArea{display:none}
+.scanner{position:fixed;inset:0;z-index:70;background:#000;display:grid;place-items:center}
+.scanner video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sc-frame{position:relative;width:min(70vw,320px);aspect-ratio:1;border-radius:28px;box-shadow:0 0 0 9999px rgba(10,10,30,.55);border:3px solid rgba(255,255,255,.9);overflow:hidden}
+.sc-frame i{position:absolute;left:8%;right:8%;height:3px;border-radius:3px;background:linear-gradient(90deg,transparent,#8B5CF6,transparent);top:10%;animation:scan 1.8s ease-in-out infinite alternate}
+@keyframes scan{to{top:88%}}
+.sc-top{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(16px + env(safe-area-inset-top)) 18px 16px;color:#fff;font-size:16px}
+.sc-bot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:18px 18px calc(22px + env(safe-area-inset-bottom))}
+
+
+/* Tablet */
+@media (min-width:640px){
+  .main{padding-left:24px;padding-right:24px}
+  .hdr{margin:0 -24px;padding-left:24px;padding-right:24px}
+  .kpis{grid-template-columns:repeat(4,1fr)}
+  .bento{display:grid;grid-template-columns:1fr;gap:18px;align-items:start}
+  .cards2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .sheet{left:auto;top:12px;right:12px;bottom:12px;width:440px;max-height:none;border-radius:28px;transform:translateX(110%)}
+  .sheet .grab{display:none}
+  .k-main{grid-template-columns:1fr}
+}
+@media (min-width:640px) and (max-width:1023px){ .cards2{grid-template-columns:1fr 1fr} }
+/* PC */
+@media (min-width:1024px){
+  .tabbar{display:none}
+  .shell{display:grid;grid-template-columns:256px 1fr}
+  .side{display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;padding:24px 16px;background:rgba(255,255,255,.75);backdrop-filter:blur(14px);border-right:1.5px solid var(--line)}
+  .side .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;padding:0 8px 18px}
+  .side .logo i{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,var(--brand),var(--violet));display:grid;place-items:center;color:#fff;box-shadow:var(--sh-brand)}
+  .side .nav{border:0;background:transparent;display:flex;align-items:center;gap:12px;height:46px;padding:0 14px;border-radius:14px;font-weight:600;color:var(--muted);text-align:left}
+  .side .nav:hover{background:var(--brand-50);color:var(--brand-700)}
+  .side .nav.on{background:var(--brand-50);color:var(--brand-700)}
+  .side .grow{flex:1}
+  .main{padding:0 36px 48px;width:100%}
+  .hdr{margin:0 -36px;padding:22px 36px 16px}
+  .bento{grid-template-columns:1.25fr 1fr}
+  .bento .span2{grid-column:1/-1}
+  .cards2{grid-template-columns:repeat(3,1fr)}
+  .card{transition:transform .2s var(--ease),box-shadow .2s}
+  .card.hov:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(91,87,240,.14)}
+  .sheet-wrap .sheet{left:50%;top:50%;right:auto;bottom:auto;width:560px;max-height:86vh;transform:translate(-50%,-46%) scale(.97);opacity:0;transition:transform .25s var(--ease),opacity .2s}
+  .sheet-wrap.show .sheet{transform:translate(-50%,-50%);opacity:1}
+  .toast{top:auto;bottom:28px;transform:translate(-50%,24px)}
+  .k-main{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
+  .kiosk{padding:36px 48px}
+}
+@media print{
+  body{background:#fff}
+  body > *:not(#printArea){display:none!important}
+  #printArea{display:flex!important;flex-direction:column;align-items:center;gap:18px;padding:30px;text-align:center;font-family:var(--font)}
+  #printArea .pq{width:12cm;height:12cm}
+  #printArea h1{margin:0;font-size:30px}
+  #printArea p{margin:0;font-size:18px;color:#333}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.rise{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.7v.5M12 17h.01"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-in" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+  <symbol id="i-dl" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-tv" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></symbol>
+  <symbol id="i-wa" viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.6 7.4L3 21l2.2-5.2A8.5 8.5 0 1 1 21 11.5z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 1c-1-.4-2-1.4-2.5-2.5l1-1-1-2z"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-building" viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+  <symbol id="i-cash" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></symbol>
+</svg>
+
+<div id="root"><div class="solo"><div class="solo-card"><div class="spin" style="width:36px;height:36px;border-width:4px"></div><p id="bootMsg">Cargando…</p></div></div></div>
+<div id="printArea"></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="scanInput" accept="image/*" capture="environment" hidden>
+
+<script>
+/* Si algo falla, se muestra en pantalla en vez de quedar en blanco */
+window.__mostrarError = function (msg, donde) {
+  var r = document.getElementById('root'); if (!r || window.__errorMostrado) return; window.__errorMostrado = true;
+  r.innerHTML = '<div class="solo"><div class="solo-card"><div class="check bad"><svg viewBox="0 0 48 48"><path d="M16 16l16 16M32 16 16 32"/></svg></div><h1>Algo salió mal</h1><p>' + String(msg).replace(/</g, '&lt;') + '</p><p class="soft" style="font-size:12px">' + String(donde || '').replace(/</g, '&lt;') + '</p><button class="btn btn-primary" onclick="location.reload()">Recargar</button></div></div>';
+};
+window.addEventListener('error', function (e) { window.__mostrarError(e.message || 'Error desconocido', (e.lineno ? 'línea ' + e.lineno : '')); });
+setTimeout(function () { var m = document.getElementById('bootMsg'); if (m) m.innerHTML = 'Esto está tardando más de lo normal.<br>Si no carga, recarga la página.'; }, 8000);
+</script>
+<script>
+(function () {
+'use strict';
+
+/* =========================================================
+ *  TEXTOS
+ * ========================================================= */
+const T = {
+  dias: ['', 'L', 'M', 'X', 'J', 'V', 'S', 'D'],
+  diasLargos: ['', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+  estados: { 'en turno': 'En turno', 'salió': 'Salió', 'ausente': 'Ausente', 'pendiente': 'Por llegar', 'libre': 'Libre' },
+  sinConexion: 'Sin conexión. Revisa tu internet e intenta de nuevo.'
+};
+
+/* =========================================================
+ *  UTILIDADES
+ * ========================================================= */
+const Q = new URLSearchParams(location.search);
+let B = { v: Q.get('v') || '', s: Q.get('s') || '', t: Q.get('t') || '', paises: [], app: {}, sede: null, version: '', ventana: 30, error: '' };
+const API = String(window.API_URL || '').trim();
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+let PAISES = [];
+let APP = { locale: 'es', moneda: 'USD', zona: Intl.DateTimeFormat().resolvedOptions().timeZone };
+const URL_APP = location.origin + location.pathname;
+
+const LS = {
+  k: k => 'asistencia:v1:' + k,
+  get(k, d) { try { const v = localStorage.getItem(this.k(k)); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(this.k(k), JSON.stringify(v)); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(this.k(k)); } catch (e) {} }
+};
+const bandera = c => c === 'XX' ? '🌐' : String.fromCodePoint(...c.split('').map(x => 127397 + x.charCodeAt(0)));
+function dinero(n) { try { return new Intl.NumberFormat(APP.locale, { style: 'currency', currency: APP.moneda }).format(n || 0); } catch (e) { return (n || 0).toFixed(2); } }
+function dineroPais(n, p) { try { return new Intl.NumberFormat(p.l, { style: 'currency', currency: p.m }).format(n); } catch (e) { return n; } }
+function num(n, d) { try { return new Intl.NumberFormat(APP.locale, { maximumFractionDigits: d || 0 }).format(n || 0); } catch (e) { return String(n); } }
+function horas(min) { min = Math.max(0, Math.round(min || 0)); const h = Math.floor(min / 60), m = min % 60; return h ? (h + ' h' + (m ? ' ' + m + ' min' : '')) : m + ' min'; }
+function horasCorto(min) { return num((min || 0) / 60, 1) + ' h'; }
+function fechaDate(f) { const p = String(f).split('-').map(Number); return new Date(Date.UTC(p[0], p[1] - 1, p[2], 12)); }
+const cap = s => String(s).charAt(0).toUpperCase() + String(s).slice(1);
+function fechaLarga(f) { try { return cap(new Intl.DateTimeFormat(APP.locale, { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' }).format(fechaDate(f))); } catch (e) { return f; } }
+function fechaCorta(f) { try { return cap(new Intl.DateTimeFormat(APP.locale, { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(fechaDate(f))); } catch (e) { return f; } }
+function hoyLocal() { try { return new Intl.DateTimeFormat('en-CA', { timeZone: APP.zona, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); } catch (e) { return new Date().toISOString().slice(0, 10); } }
+function horaLocal(d) { try { return new Intl.DateTimeFormat(APP.locale, { timeZone: APP.zona, hour: '2-digit', minute: '2-digit', hour12: false }).format(d || new Date()); } catch (e) { return ''; } }
+function sumarDias(f, n) { const d = fechaDate(f); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+function diaSemana(f) { const g = fechaDate(f).getUTCDay(); return g === 0 ? 7 : g; }
+function iniciales(n) { return String(n || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase(); }
+const PAL = ['#5B57F0', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', '#06B6D4', '#EF4444', '#6366F1', '#14B8A6', '#F97316'];
+function colorDe(s) { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return PAL[h % PAL.length]; }
+function av(n, cls) { return `<span class="av ${cls || ''}" style="background:${colorDe(n)}">${esc(iniciales(n))}</span>`; }
+function ico(id, cls) { return `<svg class="i ${cls || ''}"><use href="#i-${id}"/></svg>`; }
+
+let toastT = 0;
+function toast(m, err) { const t = $('#toast'); t.textContent = m; t.classList.toggle('err', !!err); t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), err ? 4500 : 2600); }
+function vib(p) { try { const ua = navigator.userActivation; if (navigator.vibrate && (!ua || ua.hasBeenActive)) navigator.vibrate(p || 15); } catch (e) {} }
+let AC = null;
+function beep(ok) {
+  if (LS.get('mute', false)) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    const notas = ok === false ? [330, 220] : [660, 880];
+    notas.forEach((f, i) => {
+      const o = AC.createOscillator(), g = AC.createGain();
+      o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(AC.destination);
+      const t0 = AC.currentTime + i * 0.12;
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.18);
+      o.start(t0); o.stop(t0 + 0.2);
+    });
+  } catch (e) {}
+}
+function loader(on) { let l = $('.loader'); if (on && !l) { l = document.createElement('div'); l.className = 'loader'; l.innerHTML = '<div class="spin"></div>'; document.body.appendChild(l); } if (!on && l) l.remove(); }
+async function api(fn, ...args) {
+  if (!API || /PEGA_AQUI/.test(API)) throw new Error('Falta conectar la app: abre index.html y pega tu link /exec en API_URL.');
+  let r, j;
+  try {
+    r = await fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn, args }), redirect: 'follow' });
+  } catch (e) { throw new Error(T.sinConexion); }
+  try { j = await r.json(); }
+  catch (e) { throw new Error('La API no respondió bien. Revisa que la implementación sea para "Cualquier usuario" y que API_URL termine en /exec.'); }
+  if (!j || !j.ok) throw new Error((j && j.error) || 'Error del servidor.');
+  return j.result;
+}
+function copiar(t) {
+  const fb = () => { const ta = document.createElement('textarea'); ta.value = t; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (e) {} ta.remove(); };
+  return (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(t).catch(fb) : Promise.resolve(fb())).then(() => toast('Copiado ✓'));
+}
+function countUp(root) {
+  $$('[data-count]', root).forEach(el => {
+    const fin = Number(el.dataset.count) || 0, dec = Number(el.dataset.dec || 0), t0 = performance.now();
+    const fmt = v => dec ? num(v, dec) : num(Math.round(v));
+    const step = t => { const k = Math.min(1, (t - t0) / 700); el.textContent = fmt(fin * (1 - Math.pow(1 - k, 3))) + (el.dataset.suf || ''); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+}
+function rise(root) { $$('.rise', root).forEach((el, i) => el.style.setProperty('--d', (i * 40) + 'ms')); }
+
+/* QR en SVG (nítido a cualquier tamaño) */
+function qrSvg(texto, color) {
+  if (!window.qrcode) return '<div class="soft">No se pudo cargar el generador de QR.</div>';
+  const q = qrcode(0, 'M'); q.addData(texto); q.make();
+  const n = q.getModuleCount(), m = 2; let d = '';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) d += `M${c + m} ${r + m}h1v1h-1z`;
+  return `<svg viewBox="0 0 ${n + m * 2} ${n + m * 2}" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#fff"/><path d="${d}" fill="${color || '#16163A'}"/></svg>`;
+}
+function linkMarcar(s, t) { return URL_APP + '?v=marcar&s=' + encodeURIComponent(s) + '&t=' + encodeURIComponent(t); }
+
+/* Hoja inferior / panel / modal */
+let sheetEl = null;
+function sheet(title, body, foot, onMount) {
+  closeSheet(true);
+  const w = document.createElement('div');
+  w.className = 'sheet-wrap';
+  w.innerHTML = `<div class="scrim"></div><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div class="sh-h"><h3>${title}</h3><button class="ibtn" data-x aria-label="Cerrar">${ico('x')}</button></div><div class="sh-b">${body}</div>${foot ? `<div class="sh-f">${foot}</div>` : ''}</div>`;
+  document.body.appendChild(w); sheetEl = w;
+  requestAnimationFrame(() => w.classList.add('show'));
+  $('.scrim', w).onclick = () => closeSheet(); $('[data-x]', w).onclick = () => closeSheet();
+  const grab = $('.grab', w), sh = $('.sheet', w); let y0 = null;
+  grab.addEventListener('pointerdown', e => { y0 = e.clientY; grab.setPointerCapture(e.pointerId); sh.style.transition = 'none'; });
+  grab.addEventListener('pointermove', e => { if (y0 == null) return; const dy = Math.max(0, e.clientY - y0); sh.style.transform = `translateY(${dy}px)`; });
+  grab.addEventListener('pointerup', e => { if (y0 == null) return; const dy = e.clientY - y0; y0 = null; sh.style.transition = ''; sh.style.transform = ''; if (dy > 90) closeSheet(); });
+  if (onMount) onMount(w);
+  return w;
+}
+function closeSheet(now) {
+  const w = sheetEl; if (!w) return; sheetEl = null;
+  if (now) { w.remove(); return; }
+  w.classList.remove('show'); setTimeout(() => w.remove(), 280);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+/* Ilustraciones */
+const ILL = {
+  phone: `<svg class="ill" viewBox="0 0 160 140" width="150"><circle cx="80" cy="70" r="62" fill="#F0EFFE"/><rect x="52" y="22" width="56" height="98" rx="12" fill="#fff" stroke="#C9C6FB" stroke-width="3"/><rect x="60" y="34" width="40" height="40" rx="6" fill="#E2E0FD"/><path d="M66 40h8v8h-8zM86 40h8v8h-8zM66 60h8v8h-8zM84 58h4v4h-4zM90 64h4v4h-4z" fill="#5B57F0"/><rect x="62" y="84" width="36" height="6" rx="3" fill="#E2E0FD"/><rect x="68" y="96" width="24" height="6" rx="3" fill="#E2E0FD"/><circle cx="112" cy="102" r="16" fill="#16A34A"/><path d="m105 102 5 5 9-10" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  empty: `<svg class="ill" viewBox="0 0 160 120"><ellipse cx="80" cy="104" rx="56" ry="8" fill="#ECEBFB"/><rect x="40" y="20" width="80" height="78" rx="14" fill="#fff" stroke="#C9C6FB" stroke-width="3"/><rect x="52" y="36" width="56" height="8" rx="4" fill="#E2E0FD"/><rect x="52" y="52" width="40" height="8" rx="4" fill="#E2E0FD"/><rect x="52" y="68" width="48" height="8" rx="4" fill="#E2E0FD"/><circle cx="118" cy="28" r="12" fill="#5B57F0"/><path d="M118 22v7l4 3" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
+  clock: `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="rgba(255,255,255,.18)" stroke="rgba(255,255,255,.6)" stroke-width="4"/><path d="M60 34v28l18 10" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="96" cy="26" r="10" fill="#FDE68A"/></svg>`
+};
+function vacio(titulo, texto, accion) { return `<div class="empty">${ILL.empty}<b>${titulo}</b><span>${texto}</span>${accion || ''}</div>`; }
+
+/* =========================================================
+ *  INICIO
+ * ========================================================= */
+const root = $('#root');
+function aplicarBoot(b) {
+  if (!b) return;
+  B = Object.assign(B, { paises: b.paises || B.paises, app: b.app || B.app, sede: b.sede || B.sede, version: b.version || B.version, ventana: b.ventana || 30, error: b.error || '' });
+  PAISES = (B.paises || []).map(p => ({ c: p[0], n: p[1], m: p[2], l: p[3], pre: p[4], z: p[5] }));
+  APP = Object.assign(APP, B.app || {});
+  document.title = (APP.empresa ? APP.empresa + ' · ' : '') + 'Asistencia';
+}
+async function arrancar() {
+  if (!API || /PEGA_AQUI/.test(API)) {
+    root.innerHTML = `<div class="solo"><div class="solo-card rise">${ILL.empty}<h1>Falta conectar la app</h1><p>Abre <b>index.html</b>, busca <b>API_URL</b> al inicio y pega el link de tu Apps Script que termina en <b>/exec</b>. Luego vuelve a publicarlo.</p></div></div>`;
+    rise(root); return;
+  }
+  const cache = LS.get('boot', null);
+  if (cache) aplicarBoot(cache);
+  const fresco = api('apiBoot', { v: B.v, s: B.s }).then(b => { LS.set('boot', b); aplicarBoot(b); return b; });
+  if (!cache && B.v !== 'marcar') {
+    try { await fresco; }
+    catch (e) {
+      root.innerHTML = `<div class="solo"><div class="solo-card">${ILL.empty}<h1>No se pudo conectar</h1><p>${esc(e.message)}</p><button class="btn btn-primary" onclick="location.reload()">${ico('refresh')}Reintentar</button></div></div>`;
+      return;
+    }
+  } else fresco.catch(() => {});
+  start();
+}
+function start() {
+  if (B.error) { root.innerHTML = `<div class="solo"><div class="solo-card rise">${ILL.empty}<h1>Falta configurar</h1><p>${esc(B.error)}</p></div></div>`; rise(root); return; }
+  if (B.v === 'marcar') return flujoMarcar({ s: B.s, t: B.t, origen: 'qr' });
+  if (B.v === 'pantalla') return kiosko(B.s);
+  if (B.v === 'admin') return admin();
+  return trabajador();
+}
+
+/* =========================================================
+ *  TRABAJADOR
+ * ========================================================= */
+let YO = null, yoTab = 'inicio', yoTs = 0, yoTimer = 0;
+
+function registro(pendiente) {
+  root.innerHTML = `<div class="solo"><div class="solo-card">
+    <div class="rise">${ILL.phone}</div>
+    <h1 class="rise">Vincula tu celular</h1>
+    <p class="rise">Escribe el código de 6 caracteres que te dio tu encargado. Solo se hace una vez en este celular.</p>
+    <input class="code-inp rise" id="cod" maxlength="6" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" placeholder="······">
+    <button class="btn btn-primary btn-block rise" id="vinc">${ico('phone')}Vincular celular</button>
+    <a class="btn btn-ghost btn-sm rise" href="${esc(URL_APP)}?v=admin" target="_top">Soy el encargado</a>
+  </div></div>`;
+  rise(root);
+  const inp = $('#cod'), btn = $('#vinc');
+  inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') btn.click(); });
+  btn.onclick = async () => {
+    if (inp.value.length !== 6) { toast('El código tiene 6 caracteres.', true); inp.focus(); return; }
+    btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Vinculando…';
+    try {
+      const r = await api('apiRegistrar', inp.value);
+      LS.set('dev', r.dev); LS.set('yo', { trabajador: r.trabajador });
+      vib([20, 40, 20]); beep(true);
+      toast('¡Listo, ' + r.trabajador.nombre.split(' ')[0] + '! Tu celular quedó vinculado.');
+      if (pendiente && pendiente.s) flujoMarcar(pendiente); else trabajador();
+    } catch (e) { toast(e.message, true); btn.disabled = false; btn.innerHTML = ico('phone') + 'Vincular celular'; vib([60, 40, 60]); }
+  };
+  setTimeout(() => inp.focus(), 300);
+}
+
+function trabajador() {
+  const dev = LS.get('dev');
+  if (!dev) return registro();
+  shell('yo', [
+    { id: 'inicio', t: 'Inicio', i: 'home' }, { id: 'historial', t: 'Historial', i: 'clock' },
+    { id: 'escanear', t: 'Escanear', i: 'scan', fab: true },
+    { id: 'ayuda', t: 'Ayuda', i: 'help' }, { id: 'perfil', t: 'Perfil', i: 'user' }
+  ], id => { if (id === 'escanear') return escanear(); yoTab = id; renderYo(); });
+  YO = LS.get('yo', null);
+  renderYo();
+  cargarYo();
+  clearInterval(yoTimer); yoTimer = setInterval(() => { if (yoTab === 'inicio' && YO && YO.hoy && YO.hoy.enCurso) renderYo(true); }, 30000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && LS.get('dev')) cargarYo(); });
+}
+async function cargarYo() {
+  try {
+    const d = await api('apiMiResumen', LS.get('dev'));
+    YO = d; yoTs = Date.now(); LS.set('yo', d); renderYo();
+  } catch (e) {
+    if (/NO_REGISTRADO/.test(e.message)) { LS.del('dev'); LS.del('yo'); toast('Tu celular ya no está vinculado. Pide un código nuevo.', true); return registro(); }
+    if (!YO || !YO.historial) toast(e.message, true);
+  }
+}
+function renderYo(soloHero) {
+  const v = $('#view'); if (!v) return;
+  const t = (YO && YO.trabajador) || {};
+  $('#hdrWho').innerHTML = `${av(t.nombre || '?')}<div><small>¡Hola!</small><b>${esc(t.nombre || 'Cargando…')}</b></div>`;
+  setNav(yoTab);
+  if (!YO || !YO.historial) { v.innerHTML = skel(); return; }
+  if (yoTab === 'inicio') v.innerHTML = yoInicio();
+  else if (yoTab === 'historial') v.innerHTML = yoHistorial();
+  else if (yoTab === 'ayuda') v.innerHTML = yoAyuda();
+  else v.innerHTML = yoPerfil();
+  if (!soloHero) { rise(v); countUp(v); }
+  else $$('.rise', v).forEach(el => { el.style.animation = 'none'; el.style.opacity = 1; el.style.transform = 'none'; });
+  bindYo(v);
+}
+function minutosVivos(h) { return h && h.enCurso ? h.minutos + Math.max(0, (Date.now() - (yoTs || Date.now())) / 60000) : (h ? h.minutos : 0); }
+function yoInicio() {
+  const d = YO, h = d.hoy, t = d.trabajador, hoy = hoyLocal();
+  let estado, detalle;
+  if (h && h.enCurso) { estado = 'En turno'; detalle = `<div class="big" data-count="${(minutosVivos(h) / 60).toFixed(1)}" data-dec="1" data-suf=" h">0</div><small>${h.tramos > 1 ? 'hoy · en turno' : 'trabajando'} desde las ${esc(h.entradaActual || h.entrada)}</small>`; }
+  else if (h) { estado = 'Jornada terminada'; detalle = `<div class="big" data-count="${(h.minutos / 60).toFixed(1)}" data-dec="1" data-suf=" h">0</div><small>${esc(h.entrada)} → ${esc(h.salida)}</small>`; }
+  else { estado = 'Aún no marcas entrada'; detalle = `<div class="big" style="font-size:34px">${esc(t.entrada || '--:--')}</div><small>es tu hora de entrada</small>`; }
+  const toca = String(t.dias || '').split(',').includes(String(diaSemana(hoy)));
+  const marcas = (d.marcasHoy || []).slice().reverse();
+  return `
+  <section class="hero rise">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+      <div><small>${esc(fechaLarga(hoy))}</small><h2>${estado}</h2></div>
+      <span class="glass">${ico('clock', 'i-sm')}${esc(t.entrada || '')}–${esc(t.salida || '')}</span>
+    </div>
+    <div style="margin-top:14px">${detalle}</div>
+    <div class="hero-row">
+      ${h && h.minTarde > 0 ? `<span class="glass">Llegaste ${h.minTarde} min tarde</span>` : h ? '<span class="glass">✓ A tiempo</span>' : toca ? '<span class="glass">Hoy te toca trabajar</span>' : '<span class="glass">Hoy es tu día libre</span>'}
+      ${t.sede ? `<span class="glass">${ico('pin', 'i-sm')}${esc(t.sede)}</span>` : ''}
+    </div>
+  </section>
+  <div class="kpis">
+    <div class="card kpi rise"><span class="ic">${ico('clock')}</span><b data-count="${(d.semana.minutos / 60).toFixed(1)}" data-dec="1" data-suf=" h">0</b><span>Horas esta semana</span></div>
+    <div class="card kpi rise"><span class="ic ok">${ico('cal')}</span><b data-count="${d.semana.dias}">0</b><span>Días trabajados</span></div>
+    <div class="card kpi rise"><span class="ic warn">${ico('alert')}</span><b data-count="${d.semana.tardes}">0</b><span>Tardanzas</span></div>
+    <div class="card kpi rise"><span class="ic">${ico('bolt')}</span><b>${toca ? 'Sí' : 'No'}</b><span>Trabajas hoy</span></div>
+  </div>
+  <div class="bento">
+    <div class="card rise">
+      <div class="sec" style="margin:0 0 6px"><h3>Cómo marcar</h3></div>
+      <div class="tl">
+        <div class="tl-i"><span class="dot out">${ico('qr')}</span><div><b>Escanea el QR de la entrada</b><small>Con el botón «Escanear» o con la cámara de tu celular.</small></div></div>
+        <div class="tl-i"><span class="dot out">${ico('pin')}</span><div><b>Permite tu ubicación</b><small>Así se confirma que estás en el local.</small></div></div>
+        <div class="tl-i"><span class="dot in">${ico('check')}</span><div><b>¡Listo!</b><small>La app sabe si es tu entrada o tu salida.</small></div></div>
+      </div>
+      <button class="btn btn-secondary btn-block" data-act="scan" style="margin-top:8px">${ico('scan')}Escanear el QR con la app</button>
+    </div>
+    <div class="card rise">
+      <div class="sec" style="margin:0 0 6px"><h3>Marcas de hoy</h3></div>
+      ${marcas.length ? `<div class="tl">${marcas.map(m => `<div class="tl-i"><span class="dot ${m.tipo === 'entrada' ? 'in' : 'out'}">${ico(m.tipo === 'entrada' ? 'in' : 'out')}</span><div style="flex:1"><b>${m.tipo === 'entrada' ? 'Entrada' : 'Salida'} · ${esc(m.hora)}</b><small>${esc(m.sede || '')}</small></div>${m.minTarde > 0 ? `<span class="tag warn">${m.minTarde} min tarde</span>` : ''}</div>`).join('')}</div>`
+        : vacio('Sin marcas hoy', 'Cuando escanees el QR aparecerán aquí.')}
+    </div>
+  </div>`;
+}
+function yoHistorial() {
+  const h = YO.historial || [];
+  if (!h.length) return `<div class="card">${vacio('Aún no hay historial', 'Tus jornadas aparecerán aquí.')}</div>`;
+  return `<div class="sec"><h3>Últimos días</h3></div><div class="card"><div class="list">${h.map(x => `
+    <div class="row rise"><span class="av" style="background:${x.minTarde > 0 ? '#F59E0B' : '#5B57F0'}">${fechaDate(x.fecha).getUTCDate()}</span>
+      <div class="tx"><b>${esc(fechaCorta(x.fecha))}</b><small>${esc(x.entrada || '--:--')} → ${x.enCurso ? 'en curso' : esc(x.salida || '--:--')}</small></div>
+      <div class="end">${horas(x.minutos)}${x.minTarde > 0 ? `<span class="tag warn">Tarde ${x.minTarde} min</span>` : x.sinSalida ? '<span class="tag bad">Sin salida</span>' : '<span class="tag ok">Completo</span>'}</div></div>`).join('')}</div></div>`;
+}
+function yoAyuda() {
+  const q = [
+    ['¿Qué pasa si escaneo dos veces?', 'Si vuelves a escanear antes de 2 minutos, no se duplica: verás la marca que ya hiciste.'],
+    ['Me dice que el QR venció', 'El QR de la pantalla cambia cada 30 segundos para evitar fotos. Escanea el que se ve en este momento.'],
+    ['Me dice que estoy lejos', 'Activa la ubicación del celular, sal de zonas techadas o acércate a la entrada y vuelve a intentar.'],
+    ['Cambié de celular', 'Pide a tu encargado un código nuevo y vincula el celular nuevo.'],
+    ['La cámara no se abre', 'Revisa el permiso de cámara del navegador. También puedes tocar «Mejor tomar una foto» y la app lee el QR de la foto.']
+  ];
+  return `<div class="sec"><h3>Ayuda</h3></div><div class="card"><div class="list">${q.map(x => `<details class="row rise" style="display:block"><summary style="font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:10px">${esc(x[0])}${ico('chev', 'i-sm')}</summary><p class="muted" style="margin:8px 0 0">${esc(x[1])}</p></details>`).join('')}</div></div>`;
+}
+function yoPerfil() {
+  const t = YO.trabajador || {};
+  const dias = String(t.dias || '').split(',').map(Number);
+  return `<section class="card rise" style="display:flex;align-items:center;gap:16px">${av(t.nombre, 'lg')}<div><b style="font-size:20px">${esc(t.nombre)}</b><div class="muted">${esc(t.cargo || '')}</div><span class="tag ok" style="margin-top:6px">Celular vinculado</span></div></section>
+  <div class="card rise"><div class="list">
+    <div class="row"><span class="av" style="background:#8B5CF6">${ico('pin', 'i-sm')}</span><div class="tx"><small>Sede</small><b>${esc(t.sede || '—')}</b></div></div>
+    <div class="row"><span class="av" style="background:#5B57F0">${ico('clock', 'i-sm')}</span><div class="tx"><small>Horario</small><b>${esc(t.entrada)} a ${esc(t.salida)}</b></div></div>
+    <div class="row"><span class="av" style="background:#10B981">${ico('cal', 'i-sm')}</span><div class="tx"><small>Días</small><b>${dias.map(x => T.diasLargos[x]).filter(Boolean).join(', ')}</b></div></div>
+  </div></div>
+  <label class="tg rise"><div><b>Sonido al marcar</b><small>Un pitido corto confirma tu marca.</small></div><span class="sw"><input type="checkbox" data-act="sonido" ${LS.get('mute', false) ? '' : 'checked'}><i></i></span></label>
+  <button class="btn btn-danger rise" data-act="desvincular" style="align-self:flex-start">${ico('logout')}Desvincular este celular</button>`;
+}
+function bindYo(v) {
+  v.onclick = e => {
+    const a = e.target.closest('[data-act]'); if (!a) return;
+    if (a.dataset.act === 'scan') escanear();
+    if (a.dataset.act === 'desvincular') {
+      sheet('¿Desvincular este celular?', '<p class="muted" style="margin:0">Para volver a marcar desde aquí necesitarás un código nuevo de tu encargado.</p>',
+        `<button class="btn btn-outline" data-x2>Cancelar</button><button class="btn btn-primary" style="background:var(--danger);box-shadow:none" data-ok>Desvincular</button>`,
+        w => { $('[data-x2]', w).onclick = () => closeSheet(); $('[data-ok]', w).onclick = () => { LS.del('dev'); LS.del('yo'); closeSheet(); registro(); }; });
+    }
+  };
+  v.onchange = e => { if (e.target.dataset.act === 'sonido') LS.set('mute', !e.target.checked); };
+}
+
+/* Escanear: cámara en vivo dentro de la app (plan A) o foto (plan B) */
+let SC = null;
+function procesarQR(txt, origen) {
+  let u; try { u = new URL(txt); } catch (err) { u = null; }
+  const s = u && u.searchParams.get('s'), t = u && u.searchParams.get('t');
+  if (!u || u.searchParams.get('v') !== 'marcar' || !s || !t) { toast('Ese QR no es de asistencia.', true); return false; }
+  cerrarEscaner(); flujoMarcar({ s, t, origen }); return true;
+}
+async function escanear() {
+  if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return escanearFoto();
+  cerrarEscaner();
+  const w = document.createElement('div');
+  w.className = 'scanner';
+  w.innerHTML = `<video playsinline muted autoplay></video><div class="sc-frame"><i></i></div>
+    <div class="sc-top"><b>Apunta al QR de la entrada</b><button class="ibtn" data-sc="x" aria-label="Cerrar">${ico('x')}</button></div>
+    <div class="sc-bot"><button class="btn btn-outline" data-sc="foto">${ico('cam')}Mejor tomar una foto</button></div>`;
+  document.body.appendChild(w);
+  SC = { w, stream: null, loop: 0, ultimo: 0 };
+  w.onclick = e => { const b = e.target.closest('[data-sc]'); if (!b) return; if (b.dataset.sc === 'x') cerrarEscaner(); else { cerrarEscaner(); escanearFoto(); } };
+  try {
+    SC.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false });
+  } catch (e) {
+    cerrarEscaner(); toast('No se pudo abrir la cámara. Toma una foto del QR.', true); return escanearFoto();
+  }
+  if (!SC) return;
+  const v = $('video', w); v.srcObject = SC.stream; await v.play().catch(() => {});
+  let det = null; if ('BarcodeDetector' in window) { try { det = new BarcodeDetector({ formats: ['qr_code'] }); } catch (e) {} }
+  const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
+  let ocupado = false;
+  const tick = async () => {
+    if (!SC || !SC.stream) return;
+    if (!ocupado && v.readyState >= 2) {
+      ocupado = true; let txt = null;
+      try {
+        if (det) { const r = await det.detect(v); if (r && r.length) txt = r[0].rawValue; }
+        if (!txt && window.jsQR) {
+          const k = Math.min(1, 720 / Math.max(v.videoWidth, v.videoHeight));
+          c.width = Math.round(v.videoWidth * k); c.height = Math.round(v.videoHeight * k);
+          x.drawImage(v, 0, 0, c.width, c.height);
+          const d = x.getImageData(0, 0, c.width, c.height);
+          const r = jsQR(d.data, d.width, d.height, { inversionAttempts: 'dontInvert' }); if (r) txt = r.data;
+        }
+      } catch (e) {}
+      ocupado = false;
+      if (txt && SC && Date.now() - SC.ultimo > 1500) { SC.ultimo = Date.now(); vib(30); if (procesarQR(txt, 'app')) return; }
+    }
+    if (SC) SC.loop = setTimeout(tick, 160);
+  };
+  tick();
+}
+function cerrarEscaner() {
+  if (!SC) return;
+  clearTimeout(SC.loop);
+  if (SC.stream) SC.stream.getTracks().forEach(t => t.stop());
+  SC.w.remove(); SC = null;
+}
+function escanearFoto() { const i = $('#scanInput'); i.value = ''; i.click(); }
+$('#scanInput').addEventListener('change', async e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  loader(true);
+  try {
+    const txt = await leerQRFoto(f);
+    loader(false);
+    if (!txt) { toast('No encontré un QR en la foto. Acércate y enfoca bien.', true); vib([60, 40, 60]); return; }
+    procesarQR(txt, 'foto');
+  } catch (err) { loader(false); toast('No se pudo leer la foto.', true); }
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) cerrarEscaner(); });
+async function leerQRFoto(file) {
+  let img;
+  try { img = await createImageBitmap(file); }
+  catch (e) { img = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(file); }); }
+  if ('BarcodeDetector' in window) { try { const d = new BarcodeDetector({ formats: ['qr_code'] }); const r = await d.detect(img); if (r && r.length) return r[0].rawValue; } catch (e) {} }
+  for (let k = 0; k < 40 && !window.jsQR; k++) await sleep(100);
+  if (!window.jsQR) return null;
+  const c = document.createElement('canvas'), x = c.getContext('2d', { willReadFrequently: true });
+  for (const max of [1000, 700, 1400, 500]) {
+    const s = Math.min(1, max / Math.max(img.width, img.height));
+    c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+    x.drawImage(img, 0, 0, c.width, c.height);
+    const d = x.getImageData(0, 0, c.width, c.height);
+    const r = jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' });
+    if (r && r.data) return r.data;
+  }
+  return null;
+}
+
+/* =========================================================
+ *  MARCAR (después de escanear)
+ * ========================================================= */
+function pasos(lista) {
+  return `<div class="steps">${lista.map(p => `<div class="step ${p.st || ''}"><span class="st">${p.st === 'ok' ? ico('check', 'i-sm') : p.st === 'bad' ? ico('x', 'i-sm') : p.st === 'warn' ? '!' : '<span class="spin"></span>'}</span>${esc(p.t)}</div>`).join('')}</div>`;
+}
+function obtenerGPS() {
+  return new Promise(res => {
+    if (!('geolocation' in navigator)) return res({ error: 'Este navegador no tiene ubicación.' });
+    navigator.geolocation.getCurrentPosition(p => res({ lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy }),
+      e => res({ error: e.code === 1 ? 'Permiso de ubicación denegado.' : e.code === 3 ? 'La ubicación tardó demasiado.' : 'No se pudo obtener la ubicación.' }),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 15000 });
+  });
+}
+async function flujoMarcar(p) {
+  const dev = LS.get('dev');
+  if (!dev) return registro(p);
+  const nombre = ((LS.get('yo', {}) || {}).trabajador || {}).nombre || '';
+  const sedeNombre = (B.sede && B.sede.id === p.s && B.sede.nombre) || '';
+  const draw = (lista, sub) => {
+    root.innerHTML = `<div class="solo"><div class="solo-card"><div class="radar"><div class="core">${ico('pin', 'i-lg')}</div></div>
+      <h1>${sub || 'Registrando tu marca…'}</h1><p>${esc(nombre ? nombre + (sedeNombre ? ' · ' + sedeNombre : '') : sedeNombre)}</p>${pasos(lista)}</div></div>`;
+  };
+  draw([{ t: 'Celular vinculado', st: 'ok' }, { t: 'Obteniendo tu ubicación…' }, { t: 'Validando el QR' }], 'Verificando…');
+  const g = await obtenerGPS();
+  const gStep = g.error ? { t: g.error, st: 'warn' } : { t: 'Ubicación lista (±' + Math.round(g.acc) + ' m)', st: 'ok' };
+  draw([{ t: 'Celular vinculado', st: 'ok' }, gStep, { t: 'Validando el QR y registrando…' }]);
+  try {
+    const r = await api('apiMarcar', { dev, s: p.s, t: p.t, lat: g.error ? '' : g.lat, lng: g.error ? '' : g.lng, acc: g.error ? '' : g.acc, origen: p.origen || 'qr' });
+    resultado(r);
+  } catch (e) {
+    if (/NO_REGISTRADO/.test(e.message)) { LS.del('dev'); return registro(p); }
+    errorMarca(e.message, p);
+  }
+}
+function resultado(r) {
+  const ent = r.tipo === 'entrada';
+  const chip = r.repetida ? '<span class="tag gray nodot">Ya estaba registrada</span>'
+    : ent ? (r.estado === 'reingreso' ? '<span class="tag nodot">Reingreso</span>' : r.estado === 'fuera de horario' ? '<span class="tag gray">Fuera de tu horario</span>' : r.minTarde > 0 ? `<span class="tag warn">Llegaste ${r.minTarde} min tarde</span>` : '<span class="tag ok">A tiempo</span>')
+    : (r.estado === 'temprano' ? '<span class="tag warn">Salida anticipada</span>' : '<span class="tag ok">Buen trabajo</span>');
+  root.innerHTML = `<div class="solo"><div class="solo-card">
+    <div class="check ${ent ? '' : 'out'}"><svg viewBox="0 0 48 48"><path d="M12 25l8 8 16-17"/></svg></div>
+    <small class="muted rise" style="font-weight:700">${r.repetida ? 'Ya habías marcado hace un momento' : (ent ? '¡Bienvenido, ' : '¡Hasta luego, ') + esc(String(r.nombre).split(' ')[0]) + (r.repetida ? '' : '!')}</small>
+    <h1 class="rise">${ent ? 'Entrada' : 'Salida'} registrada</h1>
+    <div class="bigtime rise">${esc(r.hora)}</div>
+    <div class="rise" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">${chip}${r.sede ? `<span class="tag nodot">${ico('pin', 'i-sm')}${esc(r.sede)}</span>` : ''}${!ent && r.minutosHoy ? `<span class="tag nodot">${ico('clock', 'i-sm')}${horas(r.minutosHoy)} hoy</span>` : ''}</div>
+    <button class="btn btn-primary btn-block rise" id="verMi" style="margin-top:10px">${ico('home')}Ver mi asistencia</button>
+  </div></div>`;
+  rise(root);
+  if (!r.repetida) { vib([30, 50, 30]); beep(true); }
+  LS.del('yo');
+  $('#verMi').onclick = () => trabajador();
+}
+function errorMarca(msg, p) {
+  root.innerHTML = `<div class="solo"><div class="solo-card">
+    <div class="check bad"><svg viewBox="0 0 48 48"><path d="M16 16l16 16M32 16 16 32"/></svg></div>
+    <h1 class="rise">No se pudo marcar</h1><p class="rise">${esc(msg)}</p>
+    <button class="btn btn-primary btn-block rise" id="reint">${ico('refresh')}Intentar de nuevo</button>
+    <button class="btn btn-ghost rise" id="verMi">Ver mi asistencia</button>
+  </div></div>`;
+  rise(root); vib([80, 50, 80]); beep(false);
+  $('#reint').onclick = () => /venci/.test(msg) ? escanear() : flujoMarcar(p);
+  if (/venci/.test(msg)) $('#reint').innerHTML = ico('scan') + 'Escanear el QR actual';
+  $('#verMi').onclick = () => trabajador();
+}
+
+/* =========================================================
+ *  PIN DEL ENCARGADO
+ * ========================================================= */
+function pinGate(siguiente, titulo) {
+  let pin = '';
+  root.innerHTML = `<div class="solo"><div class="solo-card">
+    <div class="radar" style="width:110px;height:110px"><div class="core" style="width:64px;height:64px">${ico('user', 'i-lg')}</div></div>
+    <h1>${titulo || 'Panel del encargado'}</h1><p>Ingresa tu PIN de 6 dígitos</p>
+    <div class="dots6" id="dots">${'<i></i>'.repeat(6)}</div>
+    <div class="keypad" id="kp">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => `<button data-k="${n}">${n}</button>`).join('')}<button class="k-sec" data-k="rec" id="recBtn">Recordar</button><button data-k="0">0</button><button class="k-sec" data-k="del" aria-label="Borrar">⌫</button></div>
+    <label class="tg" style="width:100%;max-width:320px"><div><b>Recordar en este dispositivo</b><small>No volverá a pedir el PIN aquí.</small></div><span class="sw"><input type="checkbox" id="rec" checked><i></i></span></label>
+  </div></div>`;
+  $('#recBtn').style.visibility = 'hidden';
+  const pintar = () => $$('#dots i').forEach((d, i) => d.classList.toggle('on', i < pin.length));
+  const probar = async () => {
+    loader(true);
+    try {
+      const datos = await api('apiAdminLogin', pin);
+      loader(false);
+      if ($('#rec').checked) LS.set('pin', pin); else sessionPin = pin;
+      vib(20); siguiente(pin, datos);
+    } catch (e) {
+      loader(false); vib([60, 40, 60]); toast(e.message, true);
+      const d = $('#dots'); d.classList.add('shake'); setTimeout(() => d.classList.remove('shake'), 400);
+      pin = ''; pintar();
+    }
+  };
+  const tecla = k => { if (k === 'del') pin = pin.slice(0, -1); else if (/^\d$/.test(k) && pin.length < 6) pin += k; pintar(); vib(8); if (pin.length === 6) probar(); };
+  $('#kp').onclick = e => { const b = e.target.closest('[data-k]'); if (b) tecla(b.dataset.k); };
+  document.onkeydown = e => { if (!$('#kp')) { document.onkeydown = null; return; } if (/^\d$/.test(e.key)) tecla(e.key); if (e.key === 'Backspace') tecla('del'); };
+}
+let sessionPin = '';
+const pinActual = () => LS.get('pin', '') || sessionPin;
+
+/* =========================================================
+ *  PANTALLA QR (kiosco en la entrada)
+ * ========================================================= */
+let K = { tokens: [], offset: 0, sede: null, loop: 0, poll: 0, last: '' };
+function kiosko(sedeId) {
+  const pin = pinActual();
+  if (!pin) return pinGate((p, datos) => kioskoElegir(sedeId, datos), 'Activar pantalla QR');
+  kioskoElegir(sedeId, null);
+}
+async function kioskoElegir(sedeId, datos) {
+  if (sedeId) return kioskoIniciar(sedeId);
+  try {
+    datos = datos || await api('apiAdminDatos', pinActual());
+    const sedes = datos.sedes || [];
+    if (sedes.length === 1) return kioskoIniciar(sedes[0].id);
+    root.innerHTML = `<div class="solo"><div class="solo-card"><h1>¿Qué sede es esta pantalla?</h1><div class="card"><div class="list">${sedes.map(s => `<button class="row" data-s="${esc(s.id)}"><span class="av" style="background:${colorDe(s.nombre)}">${ico('building', 'i-sm')}</span><div class="tx"><b>${esc(s.nombre)}</b><small>${s.modo === 'impreso' ? 'QR impreso' : 'QR que cambia cada 30 s'}</small></div>${ico('chev')}</button>`).join('') || '<p class="muted">Primero crea una sede en el panel.</p>'}</div></div></div></div>`;
+    root.onclick = e => { const b = e.target.closest('[data-s]'); if (b) { root.onclick = null; kioskoIniciar(b.dataset.s); } };
+  } catch (e) { LS.del('pin'); toast(e.message, true); kiosko(sedeId); }
+}
+async function kioskoIniciar(sedeId) {
+  root.innerHTML = `<div class="kiosk">
+    <div class="k-top"><div><small>${esc(APP.empresa || 'Asistencia')}</small><h1 id="kSede">Cargando…</h1></div><div class="k-clock" id="kClock">--:--</div></div>
+    <div class="k-main">
+      <div class="k-qr"><h2>Escanea con la cámara de tu celular</h2><div class="qrbox" id="kQr"><div class="skel" style="width:100%;height:100%"></div></div>
+        <div class="k-ring" id="kRing"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" stroke="#E2E0FD"/><circle id="kArc" cx="18" cy="18" r="15" stroke="#5B57F0" stroke-linecap="round" stroke-dasharray="94.25" stroke-dashoffset="0"/></svg><span id="kSeg">Cambia en 30 s</span></div></div>
+      <div class="k-feed"><h3>Últimas marcas</h3><div class="list" id="kFeed"><div class="soft" style="color:rgba(255,255,255,.7)">Aún no hay marcas hoy.</div></div></div>
+    </div></div>`;
+  try { if (navigator.wakeLock) await navigator.wakeLock.request('screen'); } catch (e) {}
+  const cargar = async () => {
+    try {
+      const d = await api('apiPantalla', pinActual(), sedeId);
+      K.tokens = d.tokens; K.offset = d.ahora - Date.now(); K.sede = d.sede;
+      $('#kSede').textContent = d.sede.nombre;
+      $('#kFeed').innerHTML = d.feed.length ? d.feed.map(m => `<div class="row">${av(m.nombre)}<div class="tx"><b>${esc(m.nombre)}</b><small>${m.tipo === 'entrada' ? 'Entrada' : 'Salida'} · ${esc(m.hora)}</small></div>${m.minTarde > 0 ? `<span class="tag">${m.minTarde} min tarde</span>` : ''}</div>`).join('') : '<div style="color:rgba(255,255,255,.7)">Aún no hay marcas hoy.</div>';
+      tick();
+    } catch (e) { toast(e.message, true); if (/PIN/.test(e.message)) { LS.del('pin'); kiosko(sedeId); } }
+  };
+  const tick = () => {
+    const now = Date.now() + K.offset;
+    $('#kClock').textContent = horaLocal(new Date(now));
+    const tk = K.tokens.find(x => x.hasta > now);
+    if (!tk) return;
+    if (tk.t !== K.last) {
+      K.last = tk.t;
+      const box = $('#kQr'); box.style.opacity = .2;
+      setTimeout(() => { box.innerHTML = qrSvg(linkMarcar(K.sede.id, tk.t)); box.style.opacity = 1; }, 180);
+    }
+    if (K.sede && K.sede.modo === 'impreso') { $('#kRing').hidden = true; return; }
+    const rest = Math.max(0, tk.hasta - now), tot = (B.ventana || 30) * 1000;
+    $('#kArc').setAttribute('stroke-dashoffset', String(94.25 * (1 - rest / tot)));
+    $('#kSeg').textContent = 'Cambia en ' + Math.ceil(rest / 1000) + ' s';
+  };
+  clearInterval(K.loop); clearInterval(K.poll);
+  await cargar();
+  K.loop = setInterval(tick, 500);
+  K.poll = setInterval(cargar, 20000);
+}
+
+/* =========================================================
+ *  PANEL DEL ENCARGADO
+ * ========================================================= */
+let A = null, aTab = 'hoy', aPoll = 0, filtroHoy = 'todos', REG = null, regRango = 'semana', regTid = '', buscarEq = '';
+function admin() {
+  const pin = pinActual();
+  if (!pin) return pinGate((p, datos) => adminListo(datos));
+  A = LS.get('admin', null);
+  if (A) adminListo(A, true);
+  api('apiAdminDatos', pin).then(d => adminListo(d)).catch(e => {
+    if (/PIN|intentos/.test(e.message)) { LS.del('pin'); sessionPin = ''; toast(e.message, true); return pinGate((p, datos) => adminListo(datos)); }
+    if (!A) toast(e.message, true);
+  });
+}
+function adminListo(d, desdeCache) {
+  A = d; LS.set('admin', d);
+  APP = Object.assign(APP, d.config || {});
+  if (!APP.pais) return configInicial();
+  if (!$('#view') || root.dataset.shell !== 'admin') {
+    shell('admin', [
+      { id: 'hoy', t: 'Hoy', i: 'home' }, { id: 'registros', t: 'Registros', i: 'cal' },
+      { id: 'sedes', t: 'QR', i: 'qr', fab: true },
+      { id: 'equipo', t: 'Equipo', i: 'users' }, { id: 'ajustes', t: 'Ajustes', i: 'gear' }
+    ], id => { aTab = id; renderAdmin(); });
+  }
+  $('#hdrWho').innerHTML = `<span class="av" style="background:linear-gradient(135deg,#5B57F0,#8B5CF6)">${ico('building', 'i-sm')}</span><div><small>Panel del encargado</small><b>${esc(APP.empresa || 'Mi negocio')}</b></div>`;
+  if (!desdeCache || !$('#view').children.length) renderAdmin();
+  clearInterval(aPoll);
+  aPoll = setInterval(async () => {
+    if (document.hidden || aTab !== 'hoy') return;
+    try { A.hoy = await api('apiHoy', pinActual()); LS.set('admin', A); renderAdmin(true); } catch (e) {}
+  }, 30000);
+}
+function renderAdmin(silencioso) {
+  setNav(aTab);
+  const v = $('#view');
+  if (aTab === 'hoy') v.innerHTML = aHoy();
+  else if (aTab === 'registros') { v.innerHTML = aRegistros(); if (!REG) cargarRegistros(); }
+  else if (aTab === 'sedes') v.innerHTML = aSedes();
+  else if (aTab === 'equipo') v.innerHTML = aEquipo();
+  else v.innerHTML = aAjustes();
+  if (!silencioso) { rise(v); countUp(v); }
+  else { $$('.rise', v).forEach(el => { el.style.animation = 'none'; el.style.opacity = 1; el.style.transform = 'none'; }); $$('[data-count]', v).forEach(el => el.textContent = (el.dataset.dec ? num(Number(el.dataset.count), 1) : num(Number(el.dataset.count))) + (el.dataset.suf || '')); }
+  bindAdmin(v);
+}
+const COLOR_EST = { 'en turno': 'ok', 'salió': '', 'ausente': 'bad', 'pendiente': 'gray', 'libre': 'gray' };
+
+/* --- Hoy --- */
+function aHoy() {
+  const h = A.hoy || { kpi: {}, lista: [], feed: [] }, k = h.kpi;
+  const pct = k.programados ? Math.round(k.presentes / k.programados * 100) : 0;
+  const presentes = h.lista.filter(x => x.estado === 'en turno' || x.estado === 'salió');
+  const filtros = [['todos', 'Todos'], ['en turno', 'En turno'], ['tarde', 'Tarde'], ['ausente', 'Ausentes'], ['pendiente', 'Por llegar'], ['salió', 'Salieron']];
+  const lista = h.lista.filter(x => filtroHoy === 'todos' || (filtroHoy === 'tarde' ? x.minTarde > 0 : x.estado === filtroHoy));
+  return `
+  <section class="hero rise">
+    <small>${esc(fechaLarga(h.fecha || hoyLocal()))}</small>
+    <h2>Asistencia de hoy</h2>
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:10px;flex-wrap:wrap">
+      <div class="big"><span data-count="${k.presentes || 0}" style="font-size:inherit;opacity:1">0</span><span> / ${k.programados || 0} presentes</span></div>
+      <div class="stack">${presentes.slice(0, 5).map(x => av(x.nombre)).join('')}${presentes.length > 5 ? `<span class="av more">+${presentes.length - 5}</span>` : ''}</div>
+    </div>
+    <div class="progress"><i style="width:${pct}%"></i></div>
+    <div class="hero-row"><span class="glass">${k.enTurno || 0} en turno</span><span class="glass">${k.tarde || 0} tarde</span><span class="glass">${k.ausentes || 0} ausentes</span></div>
+  </section>
+  <div class="kpis">
+    <div class="card kpi rise"><span class="ic ok">${ico('in')}</span><b data-count="${k.enTurno || 0}">0</b><span>En turno ahora</span></div>
+    <div class="card kpi rise"><span class="ic warn">${ico('alert')}</span><b data-count="${k.tarde || 0}">0</b><span>Llegaron tarde</span></div>
+    <div class="card kpi rise"><span class="ic bad">${ico('x')}</span><b data-count="${k.ausentes || 0}">0</b><span>Ausentes</span></div>
+    <div class="card kpi rise"><span class="ic">${ico('clock')}</span><b data-count="${k.pendientes || 0}">0</b><span>Por llegar</span></div>
+  </div>
+  <div class="bento">
+    <div class="card rise">
+      <div class="sec" style="margin:0 0 10px"><h3>Equipo hoy</h3></div>
+      <div class="chips" style="margin-bottom:6px">${filtros.map(f => `<button class="chip ${filtroHoy === f[0] ? 'on' : ''}" data-fh="${f[0]}">${f[1]}</button>`).join('')}</div>
+      <div class="list">${lista.length ? lista.map(x => `
+        <button class="row" data-tr="${esc(x.id)}">${av(x.nombre)}<div class="tx"><b>${esc(x.nombre)}</b><small>${esc(x.cargo || '')} · ${esc(x.horario)}</small></div>
+        <div class="end"><span class="tag ${x.minTarde > 0 && x.estado !== 'ausente' ? 'warn' : COLOR_EST[x.estado]}">${x.minTarde > 0 && x.estado !== 'ausente' ? 'Tarde ' + x.minTarde + ' min' : T.estados[x.estado]}</span><span class="soft">${x.entrada ? esc(x.entrada) + (x.salida ? ' → ' + esc(x.salida) : '') : ''}</span></div></button>`).join('')
+        : vacio('Nadie en esta lista', 'Prueba con otro filtro.')}</div>
+    </div>
+    <div class="card rise">
+      <div class="sec" style="margin:0 0 6px"><h3>Últimas marcas</h3><button class="link" data-act="refrescar">${ico('refresh', 'i-sm')}</button></div>
+      ${h.feed.length ? `<div class="tl">${h.feed.map(m => `<div class="tl-i"><span class="dot ${m.tipo === 'entrada' ? 'in' : 'out'}">${ico(m.tipo === 'entrada' ? 'in' : 'out')}</span><div style="flex:1;min-width:0"><b>${esc(m.nombre)}</b><small>${m.tipo === 'entrada' ? 'Entrada' : 'Salida'} · ${esc(m.hora)} · ${esc(m.sede || '')}${m.origen === 'manual' ? ' · manual' : ''}</small></div>${m.minTarde > 0 ? `<span class="tag warn">+${m.minTarde}</span>` : ''}</div>`).join('')}</div>`
+        : vacio('Aún no hay marcas', 'Abre la pantalla QR en la entrada para empezar.', `<button class="btn btn-secondary btn-sm" data-goto="sedes">${ico('qr')}Ir a QR</button>`)}
+    </div>
+  </div>`;
+}
+function hojaTrabajadorHoy(id) {
+  const x = (A.hoy.lista || []).find(y => y.id === id); if (!x) return;
+  const t = (A.trabajadores || []).find(y => y.id === id) || {};
+  const hoy = hoyLocal();
+  sheet(esc(x.nombre), `
+    <div style="display:flex;align-items:center;gap:14px">${av(x.nombre, 'lg')}<div><b>${esc(x.cargo || '')}</b><div class="muted">${esc(x.sede || '')} · ${esc(x.horario)}</div><span class="tag ${COLOR_EST[x.estado]}" style="margin-top:6px">${T.estados[x.estado]}</span></div></div>
+    <div class="grid2"><div class="card tight"><small class="muted">Entrada</small><div style="font-size:22px;font-weight:800">${esc(x.entrada || '--:--')}</div></div><div class="card tight"><small class="muted">Salida</small><div style="font-size:22px;font-weight:800">${esc(x.salida || '--:--')}</div></div></div>
+    <div class="lbl" style="margin-top:4px">Marca manual (corrección)</div>
+    <div class="seg" id="mmTipo"><button data-v="entrada" class="${x.entrada ? '' : 'on'}">Entrada</button><button data-v="salida" class="${x.entrada ? 'on' : ''}">Salida</button></div>
+    <div class="grid2"><div class="field"><label>Fecha</label><input class="inp" type="date" id="mmF" value="${hoy}"></div><div class="field"><label>Hora</label><input class="inp" type="time" id="mmH" value="${horaLocal()}"></div></div>
+    <div class="field"><label>Motivo (opcional)</label><input class="inp" id="mmN" maxlength="120" placeholder="Ej. olvidó su celular"></div>
+    ${t.telefono ? `<a class="btn btn-outline" target="_blank" rel="noopener" href="https://wa.me/${esc(t.telefono)}">${ico('wa')}Escribir por WhatsApp</a>` : ''}`,
+    `<button class="btn btn-outline" data-cerrar>Cancelar</button><button class="btn btn-primary" data-ok>${ico('check')}Guardar marca</button>`,
+    w => {
+      $('#mmTipo', w).onclick = e => { const b = e.target.closest('button'); if (!b) return; $$('#mmTipo button', w).forEach(y => y.classList.toggle('on', y === b)); };
+      $('[data-cerrar]', w).onclick = () => closeSheet();
+      $('[data-ok]', w).onclick = async () => {
+        const tipo = $('#mmTipo .on', w).dataset.v;
+        loader(true);
+        try {
+          await api('apiMarcaManual', pinActual(), { trabajadorId: id, tipo, fecha: $('#mmF', w).value, hora: $('#mmH', w).value, nota: $('#mmN', w).value });
+          A.hoy = await api('apiHoy', pinActual()); LS.set('admin', A); REG = null;
+          loader(false); closeSheet(); renderAdmin(true); toast('Marca manual guardada ✓'); vib(20);
+        } catch (e) { loader(false); toast(e.message, true); }
+      };
+    });
+}
+
+/* --- Registros --- */
+function rangoFechas(r) {
+  const hoy = hoyLocal(), dw = diaSemana(hoy);
+  const lunes = sumarDias(hoy, -(dw - 1));
+  const ini = hoy.slice(0, 8) + '01';
+  const prevMesFin = sumarDias(ini, -1);
+  switch (r) {
+    case 'hoy': return [hoy, hoy];
+    case 'ayer': return [sumarDias(hoy, -1), sumarDias(hoy, -1)];
+    case 'semana': return [lunes, hoy];
+    case 'semanaPasada': return [sumarDias(lunes, -7), sumarDias(lunes, -1)];
+    case 'mes': return [ini, hoy];
+    case 'mesPasado': return [prevMesFin.slice(0, 8) + '01', prevMesFin];
+    default: return [LS.get('regDesde', sumarDias(hoy, -6)), LS.get('regHasta', hoy)];
+  }
+}
+async function cargarRegistros() {
+  const [d, h] = rangoFechas(regRango);
+  REG = { cargando: true };
+  if (aTab === 'registros') renderAdmin(true);
+  try { REG = await api('apiRegistros', pinActual(), d, h, regTid); }
+  catch (e) { REG = { error: e.message }; }
+  if (aTab === 'registros') renderAdmin();
+}
+function aRegistros() {
+  const rangos = [['hoy', 'Hoy'], ['ayer', 'Ayer'], ['semana', 'Esta semana'], ['semanaPasada', 'Semana pasada'], ['mes', 'Este mes'], ['mesPasado', 'Mes pasado'], ['otro', 'Personalizado']];
+  const [d, h] = rangoFechas(regRango);
+  let cuerpo;
+  if (!REG || REG.cargando) cuerpo = skel();
+  else if (REG.error) cuerpo = `<div class="card">${vacio('No se pudo cargar', esc(REG.error), `<button class="btn btn-secondary btn-sm" data-act="regRe">${ico('refresh')}Reintentar</button>`)}</div>`;
+  else {
+    const tot = REG.totales || [], dias = REG.dias || [];
+    const sumMin = tot.reduce((a, x) => a + x.minutos, 0), sumPago = tot.reduce((a, x) => a + x.pago, 0);
+    cuerpo = `
+    <div class="kpis">
+      <div class="card kpi rise"><span class="ic">${ico('clock')}</span><b data-count="${(sumMin / 60).toFixed(1)}" data-dec="1" data-suf=" h">0</b><span>Horas trabajadas</span></div>
+      <div class="card kpi rise"><span class="ic warn">${ico('alert')}</span><b data-count="${tot.reduce((a, x) => a + x.tardes, 0)}">0</b><span>Tardanzas</span></div>
+      <div class="card kpi rise"><span class="ic bad">${ico('x')}</span><b data-count="${tot.reduce((a, x) => a + x.faltas, 0)}">0</b><span>Faltas</span></div>
+      <div class="card kpi rise"><span class="ic ok">${ico('cash')}</span><b style="font-size:21px">${esc(dinero(sumPago))}</b><span>Pago estimado</span></div>
+    </div>
+    <div class="sec"><h3>Por trabajador</h3></div>
+    <div class="cards2">${tot.map(x => `<div class="card hov rise"><div style="display:flex;gap:12px;align-items:center">${av(x.nombre)}<div style="min-width:0"><b>${esc(x.nombre)}</b><div class="soft" style="font-size:12.5px">${esc(x.cargo || '')}</div></div></div>
+      <div style="display:flex;align-items:baseline;gap:6px;margin:12px 0 8px"><b style="font-size:28px;letter-spacing:-.02em">${horasCorto(x.minutos)}</b><span class="muted">· ${x.dias} días</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${x.tardes ? `<span class="tag warn">${x.tardes} tarde${x.tardes > 1 ? 's' : ''}</span>` : '<span class="tag ok">Puntual</span>'}${x.faltas ? `<span class="tag bad">${x.faltas} falta${x.faltas > 1 ? 's' : ''}</span>` : ''}${x.tarifaHora ? `<span class="tag nodot">${ico('cash', 'i-sm')}${esc(dinero(x.pago))}</span>` : ''}</div></div>`).join('') || vacio('Sin trabajadores', 'Agrega a tu equipo primero.')}</div>
+    <div class="sec"><h3>Detalle por día</h3><span class="soft" style="font-size:13px">${dias.length} registros</span></div>
+    <div class="card"><div class="list">${dias.length ? dias.map(x => `
+      <div class="row">${av(x.nombre)}<div class="tx"><b>${esc(x.nombre)}</b><small>${esc(fechaCorta(x.fecha))} · ${x.falta ? 'sin marcas' : esc(x.entrada || '--:--') + ' → ' + (x.enCurso ? 'en curso' : esc(x.salida || '--:--'))}</small></div>
+      <div class="end">${x.falta ? '<span class="tag bad">Falta</span>' : horas(x.minutos)}${x.minTarde > 0 ? `<span class="tag warn">Tarde ${x.minTarde} min</span>` : ''}${x.sinSalida ? '<span class="tag bad">Sin salida</span>' : ''}${x.manual ? '<span class="tag gray nodot">Manual</span>' : ''}</div></div>`).join('') : vacio('Sin registros', 'No hay marcas en este rango.')}</div></div>`;
+  }
+  return `
+  <div class="card rise" style="display:flex;flex-direction:column;gap:12px">
+    <div class="chips">${rangos.map(r => `<button class="chip ${regRango === r[0] ? 'on' : ''}" data-rg="${r[0]}">${r[1]}</button>`).join('')}</div>
+    <div class="grid2">
+      ${regRango === 'otro' ? `<div class="field"><label>Desde</label><input class="inp" type="date" id="rgD" value="${d}"></div><div class="field"><label>Hasta</label><input class="inp" type="date" id="rgH" value="${h}"></div>` : ''}
+      <div class="field" style="${regRango === 'otro' ? 'grid-column:1/-1' : 'grid-column:1/-1'}"><label>Trabajador</label><select class="inp" id="rgT"><option value="">Todo el equipo</option>${(A.trabajadores || []).map(t => `<option value="${esc(t.id)}" ${regTid === t.id ? 'selected' : ''}>${esc(t.nombre)}</option>`).join('')}</select></div>
+    </div>
+    <button class="btn btn-primary" data-act="exportar" ${!REG || !REG.dias ? 'disabled' : ''}>${ico('dl')}Exportar a Excel</button>
+  </div>
+  ${cuerpo}`;
+}
+function exportarCSV() {
+  if (!REG || !REG.dias) return;
+  const dec = (1.5).toLocaleString(APP.locale).includes(',') ? ',' : '.';
+  const sep = dec === ',' ? ';' : ',';
+  const n = v => String(Math.round(v * 100) / 100).replace('.', dec);
+  const c = v => { v = String(v == null ? '' : v); return /[";\n,]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  const L = [['Fecha', 'Trabajador', 'Entrada', 'Salida', 'Horas', 'Min. tarde', 'Estado'].join(sep)];
+  REG.dias.forEach(x => L.push([x.fecha, x.nombre, x.entrada || '', x.salida || '', n(x.minutos / 60), x.minTarde || 0, x.falta ? 'Falta' : x.sinSalida ? 'Sin salida' : x.enCurso ? 'En curso' : x.manual ? 'Manual' : 'OK'].map(c).join(sep)));
+  L.push(''); L.push(['Trabajador', 'Horas', 'Días', 'Tardanzas', 'Faltas', 'Tarifa por hora', 'Pago estimado (' + APP.moneda + ')'].join(sep));
+  (REG.totales || []).forEach(x => L.push([x.nombre, n(x.minutos / 60), x.dias, x.tardes, x.faltas, n(x.tarifaHora), n(x.pago)].map(c).join(sep)));
+  const blob = new Blob(['﻿' + L.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `asistencia_${REG.desde}_${REG.hasta}.csv`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 3000);
+  toast('Archivo listo para Excel ✓');
+}
+
+/* --- Sedes y QR --- */
+function aSedes() {
+  const sedes = A.sedes || [];
+  return `
+  <section class="hero rise"><div style="max-width:62%"><small>Anti-trampas</small><h2>Tus códigos QR</h2><p style="margin:6px 0 0;opacity:.9;font-size:14px">Usa una tablet o un celular viejo en la entrada: el QR cambia cada 30 segundos y una foto no sirve después.</p></div><div class="ill">${ILL.clock}</div></section>
+  <div class="sec"><h3>Sedes</h3><button class="link" data-act="nuevaSede">${ico('plus', 'i-sm')} Nueva sede</button></div>
+  <div class="cards2">${sedes.map(s => `
+    <div class="card hov rise" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;gap:12px;align-items:center"><span class="av" style="background:${colorDe(s.nombre)}">${ico('building', 'i-sm')}</span><div style="flex:1;min-width:0"><b>${esc(s.nombre)}</b><div class="soft" style="font-size:12.5px">${s.lat !== '' ? 'Radio ' + s.radio + ' m' : 'Sin ubicación GPS'}</div></div><button class="ibtn" data-es="${esc(s.id)}" aria-label="Editar">${ico('edit', 'i-sm')}</button></div>
+      <span class="tag ${s.modo === 'impreso' ? 'warn' : 'ok'}" style="align-self:flex-start">${s.modo === 'impreso' ? 'QR impreso fijo' : 'QR en pantalla · cambia cada 30 s'}</span>
+      ${s.lat === '' ? `<div class="tag bad nodot" style="height:auto;padding:8px 10px;white-space:normal">${ico('alert', 'i-sm')}Agrega la ubicación para validar el GPS</div>` : ''}
+      ${s.modo === 'impreso'
+        ? `<div class="grid2"><button class="btn btn-secondary btn-sm" data-imp="${esc(s.id)}">${ico('print', 'i-sm')}Imprimir</button><button class="btn btn-outline btn-sm" data-regen="${esc(s.id)}">${ico('refresh', 'i-sm')}Cambiar QR</button></div>`
+        : `<div class="grid2"><a class="btn btn-secondary btn-sm" target="_blank" rel="noopener" href="${esc(URL_APP)}?v=pantalla&s=${esc(s.id)}">${ico('tv', 'i-sm')}Abrir pantalla</a><button class="btn btn-outline btn-sm" data-cp="${esc(URL_APP)}?v=pantalla&s=${esc(s.id)}">${ico('copy', 'i-sm')}Copiar link</button></div>`}
+    </div>`).join('') || `<div class="card">${vacio('Aún no tienes sedes', 'Crea tu primera sede para generar el QR.', `<button class="btn btn-primary btn-sm" data-act="nuevaSede">${ico('plus')}Crear sede</button>`)}</div>`}</div>`;
+}
+function hojaSede(s) {
+  s = s || { nombre: '', modo: 'pantalla', lat: '', lng: '', radio: 120 };
+  sheet(s.id ? 'Editar sede' : 'Nueva sede', `
+    <div class="field"><label>Nombre</label><input class="inp" id="sdN" maxlength="50" value="${esc(s.nombre)}" placeholder="Ej. Local central"></div>
+    <div class="lbl">Tipo de QR</div>
+    <div class="seg" id="sdM"><button data-v="pantalla" class="${s.modo !== 'impreso' ? 'on' : ''}">Pantalla (recomendado)</button><button data-v="impreso" class="${s.modo === 'impreso' ? 'on' : ''}">Impreso fijo</button></div>
+    <p class="muted" id="sdMx" style="margin:0;font-size:13px"></p>
+    <div class="field"><label>Radio permitido: <b id="sdRo">${s.radio} m</b></label><input type="range" id="sdR" min="30" max="500" step="10" value="${s.radio}"></div>
+    <div class="grid2"><div class="field"><label>Latitud</label><input class="inp" id="sdLa" inputmode="decimal" value="${esc(s.lat)}"></div><div class="field"><label>Longitud</label><input class="inp" id="sdLo" inputmode="decimal" value="${esc(s.lng)}"></div></div>
+    <button class="btn btn-secondary" id="sdGps">${ico('pin')}Usar mi ubicación actual</button>
+    ${s.id ? `<button class="btn btn-danger" id="sdDel" style="align-self:flex-start">${ico('trash')}Eliminar sede</button>` : ''}`,
+    `<button class="btn btn-outline" data-cerrar>Cancelar</button><button class="btn btn-primary" data-ok>${ico('check')}Guardar</button>`,
+    w => {
+      const expl = () => { const m = $('#sdM .on', w).dataset.v; $('#sdMx', w).textContent = m === 'impreso' ? 'Un QR para imprimir y pegar. Puedes cambiarlo cuando quieras; el GPS evita que marquen desde casa.' : 'Abre la pantalla en una tablet o celular en la entrada. El QR cambia cada 30 s.'; };
+      expl();
+      $('#sdM', w).onclick = e => { const b = e.target.closest('button'); if (!b) return; $$('#sdM button', w).forEach(y => y.classList.toggle('on', y === b)); expl(); };
+      $('#sdR', w).oninput = e => { $('#sdRo', w).textContent = e.target.value + ' m'; };
+      $('#sdGps', w).onclick = async () => {
+        const b = $('#sdGps', w); b.disabled = true; b.innerHTML = '<span class="spin"></span>Buscando…';
+        const g = await obtenerGPS(); b.disabled = false; b.innerHTML = ico('pin') + 'Usar mi ubicación actual';
+        if (g.error) return toast(g.error, true);
+        $('#sdLa', w).value = g.lat.toFixed(6); $('#sdLo', w).value = g.lng.toFixed(6); toast('Ubicación tomada (±' + Math.round(g.acc) + ' m)');
+      };
+      $('[data-cerrar]', w).onclick = () => closeSheet();
+      if ($('#sdDel', w)) $('#sdDel', w).onclick = () => confirmar('¿Eliminar esta sede?', 'Sus QR dejarán de funcionar.', async () => { await api('apiEliminarSede', pinActual(), s.id); await recargarAdmin(); toast('Sede eliminada'); });
+      $('[data-ok]', w).onclick = async () => {
+        loader(true);
+        try {
+          await api('apiGuardarSede', pinActual(), { id: s.id, nombre: $('#sdN', w).value, modo: $('#sdM .on', w).dataset.v, radio: $('#sdR', w).value, lat: $('#sdLa', w).value.trim(), lng: $('#sdLo', w).value.trim() });
+          await recargarAdmin(); loader(false); closeSheet(); toast('Sede guardada ✓'); vib(20);
+        } catch (e) { loader(false); toast(e.message, true); }
+      };
+    });
+}
+async function imprimirQR(id) {
+  loader(true);
+  try {
+    const r = await api('apiQRImpreso', pinActual(), id);
+    loader(false);
+    $('#printArea').innerHTML = `<h1>${esc(APP.empresa || '')}</h1><p><b>${esc(r.sede)}</b></p><div class="pq">${qrSvg(linkMarcar(id, r.t))}</div><h1 style="font-size:26px">Marca tu asistencia</h1><p>Escanea este código con la cámara de tu celular al llegar y al salir.</p>`;
+    setTimeout(() => window.print(), 200);
+  } catch (e) { loader(false); toast(e.message, true); }
+}
+
+/* --- Equipo --- */
+function aEquipo() {
+  const lista = (A.trabajadores || []).filter(t => !buscarEq || (t.nombre + ' ' + t.cargo).toLowerCase().includes(buscarEq.toLowerCase()));
+  const sedes = {}; (A.sedes || []).forEach(s => sedes[s.id] = s.nombre);
+  return `
+  <div class="card rise" style="display:flex;gap:10px;align-items:center;padding:10px 14px">${ico('search')}<input class="inp" id="eqQ" style="border:0;box-shadow:none;padding:0;height:40px" placeholder="Buscar en tu equipo…" value="${esc(buscarEq)}"></div>
+  <button class="btn btn-primary rise" data-act="nuevoTr" style="align-self:flex-start">${ico('plus')}Agregar trabajador</button>
+  <div class="cards2">${lista.map(t => `
+    <button class="card hov rise" data-et="${esc(t.id)}" style="text-align:left;display:flex;flex-direction:column;gap:10px;cursor:pointer">
+      <div style="display:flex;gap:12px;align-items:center;width:100%">${av(t.nombre)}<div style="flex:1;min-width:0"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.nombre)}</b><span class="soft" style="font-size:12.5px">${esc(t.cargo || 'Sin cargo')}${sedes[t.sedeId] ? ' · ' + esc(sedes[t.sedeId]) : ''}</span></div>${ico('chev', 'i-sm')}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag nodot">${ico('clock', 'i-sm')}${esc(t.entrada)}–${esc(t.salida)}</span>${t.vinculado ? '<span class="tag ok">Celular vinculado</span>' : t.codigo ? `<span class="tag warn nodot">Código ${esc(t.codigo)}</span>` : '<span class="tag gray">Sin celular</span>'}</div>
+    </button>`).join('') || `<div class="card">${vacio(buscarEq ? 'Sin resultados' : 'Tu equipo está vacío', buscarEq ? 'Prueba con otro nombre.' : 'Agrega a tu primer trabajador.')}</div>`}</div>`;
+}
+function mensajeCodigo(t) {
+  return `Hola ${t.nombre.split(' ')[0]} 👋\nPara marcar tu asistencia en ${APP.empresa || 'el trabajo'}:\n1) Abre este link en tu celular: ${URL_APP}\n2) Escribe tu código: ${t.codigo}\nDespués solo escanea el QR de la entrada con tu cámara al llegar y al salir.`;
+}
+function hojaTrabajador(t) {
+  const nuevo = !t;
+  t = t || { nombre: '', cargo: '', sedeId: (A.sedes[0] || {}).id || '', telefono: '', entrada: '08:00', salida: '17:00', tolerancia: APP.toleranciaMin || 10, dias: '1,2,3,4,5', tarifaHora: 0 };
+  const pais = PAISES.find(p => p.c === APP.pais) || {};
+  const tel = String(t.telefono || '').replace(new RegExp('^' + (pais.pre || 'x')), '');
+  const dias = String(t.dias).split(',');
+  const simb = (dinero(0).replace(/[\d\s.,]/g, '') || APP.moneda);
+  sheet(nuevo ? 'Nuevo trabajador' : 'Editar trabajador', `
+    ${!nuevo ? `<div class="card tight" style="display:flex;align-items:center;gap:12px;background:${t.vinculado ? 'var(--ok-50)' : 'var(--warn-50)'};border-color:transparent;box-shadow:none">
+      <span class="av" style="background:${t.vinculado ? 'var(--ok)' : 'var(--warn)'}">${ico('phone', 'i-sm')}</span>
+      <div style="flex:1"><b>${t.vinculado ? 'Celular vinculado' : t.codigo ? 'Código: ' + esc(t.codigo) : 'Sin celular'}</b><div class="muted" style="font-size:12.5px">${t.vinculado ? 'Si cambia de celular, genera un código nuevo.' : 'Compártelo para que vincule su celular.'}</div></div></div>
+      <div class="grid2">${t.codigo ? `<a class="btn btn-secondary btn-sm" target="_blank" rel="noopener" href="https://wa.me/${esc(t.telefono || '')}?text=${encodeURIComponent(mensajeCodigo(t))}">${ico('wa', 'i-sm')}Enviar código</a>` : ''}<button class="btn btn-outline btn-sm" id="trCod" ${t.codigo ? '' : 'style="grid-column:1/-1"'}>${ico('refresh', 'i-sm')}${t.vinculado ? 'Cambiar de celular' : 'Nuevo código'}</button></div>` : ''}
+    <div class="field"><label>Nombre completo</label><input class="inp" id="trN" maxlength="60" value="${esc(t.nombre)}"></div>
+    <div class="grid2"><div class="field"><label>Cargo</label><input class="inp" id="trC" maxlength="40" value="${esc(t.cargo)}"></div>
+      <div class="field"><label>Sede</label><select class="inp" id="trS">${(A.sedes || []).map(s => `<option value="${esc(s.id)}" ${s.id === t.sedeId ? 'selected' : ''}>${esc(s.nombre)}</option>`).join('') || '<option value="">Sin sedes</option>'}</select></div></div>
+    <div class="field"><label>WhatsApp</label><div class="pref"><span>${pais.pre ? '+' + esc(pais.pre) : '+'}</span><input class="inp" id="trTel" inputmode="tel" maxlength="15" value="${esc(tel)}" placeholder="Número"></div></div>
+    <div class="grid2"><div class="field"><label>Entrada</label><input class="inp" type="time" id="trE" value="${esc(t.entrada)}"></div><div class="field"><label>Salida</label><input class="inp" type="time" id="trSa" value="${esc(t.salida)}"></div></div>
+    <div class="lbl">Días de trabajo</div>
+    <div class="days" id="trD">${[1, 2, 3, 4, 5, 6, 7].map(d => `<button data-d="${d}" class="${dias.includes(String(d)) ? 'on' : ''}" title="${T.diasLargos[d]}">${T.dias[d]}</button>`).join('')}</div>
+    <div class="grid2"><div class="field"><label>Tolerancia (min)</label><input class="inp" type="number" min="0" max="120" id="trTo" value="${esc(t.tolerancia)}"></div>
+      <div class="field"><label>Pago por hora</label><div class="pref"><span>${esc(simb)}</span><input class="inp" type="number" min="0" step="0.5" id="trTa" value="${esc(t.tarifaHora || '')}" placeholder="0"></div></div></div>
+    ${!nuevo ? `<button class="btn btn-danger" id="trDel" style="align-self:flex-start">${ico('trash')}Quitar del equipo</button>` : ''}`,
+    `<button class="btn btn-outline" data-cerrar>Cancelar</button><button class="btn btn-primary" data-ok>${ico('check')}${nuevo ? 'Crear y ver código' : 'Guardar'}</button>`,
+    w => {
+      $('#trD', w).onclick = e => { const b = e.target.closest('button'); if (b) { b.classList.toggle('on'); vib(8); } };
+      $('[data-cerrar]', w).onclick = () => closeSheet();
+      if ($('#trCod', w)) $('#trCod', w).onclick = () => confirmar(t.vinculado ? '¿Cambiar de celular?' : '¿Generar un código nuevo?', 'El celular actual dejará de poder marcar hasta que use el código nuevo.', async () => {
+        const r = await api('apiNuevoCodigo', pinActual(), t.id); await recargarAdmin(); hojaCodigo(r);
+      });
+      if ($('#trDel', w)) $('#trDel', w).onclick = () => confirmar('¿Quitar a ' + t.nombre + '?', 'Ya no podrá marcar. Sus registros pasados se conservan.', async () => { await api('apiEliminarTrabajador', pinActual(), t.id); await recargarAdmin(); toast('Trabajador quitado'); });
+      $('[data-ok]', w).onclick = async () => {
+        const telN = $('#trTel', w).value.replace(/\D/g, '');
+        const d = {
+          id: t.id, nombre: $('#trN', w).value, cargo: $('#trC', w).value, sedeId: $('#trS', w).value,
+          telefono: telN ? (pais.pre || '') + telN : '', entrada: $('#trE', w).value, salida: $('#trSa', w).value,
+          dias: $$('#trD .on', w).map(b => b.dataset.d).join(','), tolerancia: $('#trTo', w).value, tarifaHora: $('#trTa', w).value
+        };
+        if (!d.nombre.trim()) return toast('Escribe el nombre.', true);
+        if (!d.dias) return toast('Elige al menos un día.', true);
+        loader(true);
+        try {
+          const r = await api('apiGuardarTrabajador', pinActual(), d);
+          await recargarAdmin(); loader(false); vib(20);
+          if (nuevo) hojaCodigo(r); else { closeSheet(); toast('Guardado ✓'); }
+        } catch (e) { loader(false); toast(e.message, true); }
+      };
+    });
+}
+function hojaCodigo(t) {
+  sheet('Código de ' + esc(t.nombre.split(' ')[0]), `
+    <div style="text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center">
+      ${ILL.phone}
+      <p class="muted" style="margin:0">Pídele que abra la app en su celular y escriba este código. Solo sirve una vez.</p>
+      <div style="font-size:40px;font-weight:800;letter-spacing:.3em;color:var(--brand-700);background:var(--brand-50);border-radius:20px;padding:12px 18px 12px 26px">${esc(t.codigo)}</div>
+      <button class="btn btn-ghost btn-sm" id="cpLink">${ico('copy', 'i-sm')}Copiar link de la app</button>
+    </div>`,
+    `<button class="btn btn-outline" id="cpCod">${ico('copy')}Copiar mensaje</button><a class="btn btn-primary" target="_blank" rel="noopener" href="https://wa.me/${esc(t.telefono || '')}?text=${encodeURIComponent(mensajeCodigo(t))}">${ico('wa')}Enviar por WhatsApp</a>`,
+    w => { $('#cpCod', w).onclick = () => copiar(mensajeCodigo(t)); $('#cpLink', w).onclick = () => copiar(URL_APP); });
+}
+
+/* --- Ajustes --- */
+function aAjustes() {
+  const c = APP;
+  return `
+  <div class="card rise" style="display:flex;flex-direction:column;gap:14px">
+    <div class="sec" style="margin:0"><h3>Tu negocio</h3></div>
+    <div class="field"><label>Nombre del negocio</label><input class="inp" id="ajE" maxlength="60" value="${esc(c.empresa)}"></div>
+    <div class="field"><label>País</label>${selectorPais(c.pais, 'ajP')}</div>
+    <label class="tg"><div><b>GPS obligatorio</b><small>Solo se puede marcar cerca de la sede.</small></div><span class="sw"><input type="checkbox" id="ajG" ${c.gpsObligatorio !== 'no' ? 'checked' : ''}><i></i></span></label>
+    <div class="field"><label>Tolerancia por defecto (minutos)</label><input class="inp" type="number" min="0" max="120" id="ajT" value="${esc(c.toleranciaMin)}"></div>
+    <button class="btn btn-primary" data-act="guardarAj">${ico('check')}Guardar cambios</button>
+  </div>
+  <div class="card rise" style="display:flex;flex-direction:column;gap:10px">
+    <div class="sec" style="margin:0 0 4px"><h3>Links</h3></div>
+    <div class="row"><span class="av" style="background:#10B981">${ico('users', 'i-sm')}</span><div class="tx"><b>App de trabajadores</b><small>${esc(URL_APP)}</small></div><button class="ibtn" data-cp="${esc(URL_APP)}">${ico('copy', 'i-sm')}</button></div>
+    <div class="row"><span class="av" style="background:#5B57F0">${ico('user', 'i-sm')}</span><div class="tx"><b>Panel del encargado</b><small>${esc(URL_APP)}?v=admin</small></div><button class="ibtn" data-cp="${esc(URL_APP)}?v=admin">${ico('copy', 'i-sm')}</button></div>
+  </div>
+  <button class="btn btn-danger rise" data-act="salir" style="align-self:flex-start">${ico('logout')}Cerrar sesión en este dispositivo</button>`;
+}
+function selectorPais(sel, id) {
+  return `<select class="inp" id="${id}">${PAISES.map(p => `<option value="${p.c}" ${p.c === sel ? 'selected' : ''}>${bandera(p.c)}  ${esc(p.n)} — ${esc(dineroPais(25, p))}</option>`).join('')}</select>`;
+}
+function sugerirPais() {
+  const z = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  const p = PAISES.find(x => x.z === z) || PAISES.find(x => (navigator.language || '').toUpperCase().endsWith('-' + x.c));
+  return p ? p.c : 'XX';
+}
+function configInicial() {
+  root.dataset.shell = '';
+  root.innerHTML = `<div class="solo"><div class="solo-card" style="text-align:left;align-items:stretch">
+    <div class="rise" style="text-align:center">${ILL.phone}</div>
+    <h1 class="rise" style="text-align:center">Configura tu negocio</h1>
+    <p class="rise" style="text-align:center">Solo te lo pedimos una vez. Puedes cambiarlo en Ajustes.</p>
+    <div class="card rise" style="display:flex;flex-direction:column;gap:14px">
+      <div class="field"><label>Nombre del negocio</label><input class="inp" id="ciE" maxlength="60" value="${esc(APP.empresa || '')}" placeholder="Ej. Panadería Sol"></div>
+      <div class="field"><label>País (define la hora y la moneda)</label>${selectorPais(sugerirPais(), 'ciP')}</div>
+    </div>
+    <button class="btn btn-primary btn-block rise" id="ciOk">${ico('check')}Empezar</button>
+  </div></div>`;
+  rise(root);
+  $('#ciOk').onclick = async () => {
+    loader(true);
+    try {
+      const c = await api('apiGuardarConfig', pinActual(), { empresa: $('#ciE').value, pais: $('#ciP').value, gpsObligatorio: 'si', toleranciaMin: 10 });
+      APP = Object.assign(APP, c); A.config = c; loader(false); adminListo(A);
+    } catch (e) { loader(false); toast(e.message, true); }
+  };
+}
+
+/* --- Eventos del panel --- */
+function confirmar(titulo, texto, fn) {
+  sheet(titulo, `<p class="muted" style="margin:0">${esc(texto)}</p>`,
+    `<button class="btn btn-outline" data-no>Cancelar</button><button class="btn btn-primary" data-si>Sí, continuar</button>`,
+    w => {
+      $('[data-no]', w).onclick = () => closeSheet();
+      $('[data-si]', w).onclick = async () => { loader(true); try { closeSheet(true); await fn(); } catch (e) { toast(e.message, true); } finally { loader(false); } };
+    });
+}
+async function recargarAdmin() { const d = await api('apiAdminDatos', pinActual()); A = d; LS.set('admin', d); APP = Object.assign(APP, d.config || {}); renderAdmin(true); }
+function bindAdmin(v) {
+  v.onclick = async e => {
+    const el = e.target.closest('[data-act],[data-fh],[data-tr],[data-rg],[data-es],[data-imp],[data-regen],[data-cp],[data-et],[data-goto]');
+    if (!el) return;
+    const ds = el.dataset;
+    if (ds.fh) { filtroHoy = ds.fh; renderAdmin(true); return; }
+    if (ds.tr) return hojaTrabajadorHoy(ds.tr);
+    if (ds.goto) { aTab = ds.goto; renderAdmin(); return; }
+    if (ds.rg) { regRango = ds.rg; REG = null; renderAdmin(true); cargarRegistros(); return; }
+    if (ds.es) return hojaSede(A.sedes.find(s => s.id === ds.es));
+    if (ds.imp) return imprimirQR(ds.imp);
+    if (ds.regen) return confirmar('¿Cambiar el QR impreso?', 'El QR que está pegado dejará de funcionar. Tendrás que imprimir el nuevo.', async () => { await api('apiRegenerarQR', pinActual(), ds.regen); toast('QR cambiado. Imprime el nuevo.'); imprimirQR(ds.regen); });
+    if (ds.cp) return copiar(ds.cp);
+    if (ds.et) return hojaTrabajador(A.trabajadores.find(t => t.id === ds.et));
+    switch (ds.act) {
+      case 'refrescar': loader(true); try { A.hoy = await api('apiHoy', pinActual()); renderAdmin(true); } catch (er) { toast(er.message, true); } loader(false); break;
+      case 'exportar': exportarCSV(); break;
+      case 'regRe': cargarRegistros(); break;
+      case 'nuevaSede': hojaSede(); break;
+      case 'nuevoTr': if (!(A.sedes || []).length) { toast('Primero crea una sede.', true); aTab = 'sedes'; renderAdmin(); return; } hojaTrabajador(); break;
+      case 'salir': LS.del('pin'); LS.del('admin'); sessionPin = ''; clearInterval(aPoll); location.reload(); break;
+      case 'guardarAj':
+        loader(true);
+        try {
+          const c = await api('apiGuardarConfig', pinActual(), { empresa: $('#ajE').value, pais: $('#ajP').value, gpsObligatorio: $('#ajG').checked ? 'si' : 'no', toleranciaMin: $('#ajT').value });
+          APP = Object.assign(APP, c); A.config = c; LS.set('admin', A); REG = null;
+          $('#hdrWho b').textContent = APP.empresa || 'Mi negocio'; toast('Ajustes guardados ✓'); vib(20);
+        } catch (er) { toast(er.message, true); }
+        loader(false); break;
+    }
+  };
+  v.onchange = e => {
+    if (e.target.id === 'rgT') { regTid = e.target.value; cargarRegistros(); }
+    if (e.target.id === 'rgD' || e.target.id === 'rgH') { LS.set(e.target.id === 'rgD' ? 'regDesde' : 'regHasta', e.target.value); cargarRegistros(); }
+  };
+  const q = $('#eqQ', v);
+  if (q) q.oninput = () => { buscarEq = q.value; const pos = q.selectionStart; renderAdmin(true); const n = $('#eqQ'); n.focus(); n.setSelectionRange(pos, pos); };
+}
+
+/* =========================================================
+ *  ESTRUCTURA (barra inferior / lateral)
+ * ========================================================= */
+let navCb = null;
+function shell(tipo, tabs, cb) {
+  navCb = cb; root.dataset.shell = tipo;
+  const lado = tabs.filter(t => !t.fab);
+  const fab = tabs.find(t => t.fab);
+  root.innerHTML = `<div class="shell">
+    <aside class="side"><div class="logo"><i>${ico(tipo === 'admin' ? 'building' : 'qr')}</i>${tipo === 'admin' ? 'Asistencia QR' : esc(APP.empresa || 'Asistencia')}</div>
+      ${fab ? `<button class="btn btn-primary" data-nav="${fab.id}" style="margin-bottom:10px">${ico(fab.i)}${fab.id === 'escanear' ? 'Escanear QR' : 'Códigos QR'}</button>` : ''}
+      ${lado.map(t => `<button class="nav" data-nav="${t.id}">${ico(t.i)}${t.t}</button>`).join('')}
+      <div class="grow"></div><span class="soft" style="font-size:12px;padding:0 14px">v${esc(B.version || '')}</span></aside>
+    <div class="main"><header class="hdr" id="hdr"><div class="who" id="hdrWho"></div><div class="acts"></div></header><main id="view"></main></div>
+    <nav class="tabbar">${tabs.map(t => t.fab ? `<button class="fab" data-nav="${t.id}" aria-label="${t.t}"><span class="c">${ico(t.i, 'i-lg')}</span><em>${t.t}</em></button>` : `<button data-nav="${t.id}">${ico(t.i)}${t.t}</button>`).join('')}</nav>
+  </div>`;
+  root.onclick = e => { const b = e.target.closest('[data-nav]'); if (b) { vib(8); window.scrollTo({ top: 0, behavior: 'smooth' }); navCb(b.dataset.nav); } };
+}
+function setNav(id) { $$('[data-nav]').forEach(b => b.classList.toggle('on', b.dataset.nav === id && !b.classList.contains('fab') && !b.classList.contains('btn'))); }
+function skel() { return `<div class="skel" style="height:170px;border-radius:26px"></div><div class="kpis">${'<div class="skel" style="height:110px"></div>'.repeat(4)}</div><div class="skel" style="height:260px;border-radius:22px"></div>`; }
+window.addEventListener('scroll', () => { const h = $('#hdr'); if (h) h.classList.toggle('compact', window.scrollY > 10); }, { passive: true });
+
+arrancar().catch(e => window.__mostrarError(e.message, 'inicio'));
+})();
+</script>
+</body>
+</html>
