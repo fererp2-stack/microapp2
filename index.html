@@ -523,7 +523,11 @@ function aplicarBoot(b) {
 }
 async function arrancar() {
   if (!API || /PEGA_AQUI/.test(API)) {
-    root.innerHTML = `<div class="solo"><div class="solo-card rise">${ILL.empty}<h1>Falta conectar la app</h1><p>Abre <b>index.html</b>, busca <b>API_URL</b> al inicio y pega el link de tu Apps Script que termina en <b>/exec</b>. Luego vuelve a publicarlo.</p></div></div>`;
+    root.innerHTML = `<div class="solo"><div class="solo-card rise">${ILL.empty}<h1>Falta conectar la app</h1><p>En <b>index.html</b> busca (Ctrl+F) <b>PEGA_AQUI_TU_LINK_EXEC</b> y reemplázalo por el link de tu Apps Script que termina en <b>/exec</b>. Guarda y vuelve a publicar.</p></div></div>`;
+    rise(root); return;
+  }
+  if (/\/dev(\?|$)/.test(API) || !/\/exec(\?|$)/.test(API)) {
+    root.innerHTML = `<div class="solo"><div class="solo-card rise">${ILL.empty}<h1>Ese link no es el correcto</h1><p>En <b>index.html</b> debe ir el link de Apps Script que termina en <b>/exec</b> (no el que termina en /dev). Lo copias en Implementar → Gestionar implementaciones.</p></div></div>`;
     rise(root); return;
   }
   const cache = LS.get('boot', null);
@@ -872,7 +876,7 @@ function pinGate(siguiente, titulo) {
   const probar = async () => {
     loader(true);
     try {
-      const datos = await api('apiAdminLogin', pin);
+      const datos = await api('apiAdminLogin', pin, URL_APP);
       loader(false);
       if ($('#rec').checked) LS.set('pin', pin); else sessionPin = pin;
       vib(20); siguiente(pin, datos);
@@ -901,7 +905,7 @@ function kiosko(sedeId) {
 async function kioskoElegir(sedeId, datos) {
   if (sedeId) return kioskoIniciar(sedeId);
   try {
-    datos = datos || await api('apiAdminDatos', pinActual());
+    datos = datos || await api('apiAdminDatos', pinActual(), URL_APP);
     const sedes = datos.sedes || [];
     if (sedes.length === 1) return kioskoIniciar(sedes[0].id);
     root.innerHTML = `<div class="solo"><div class="solo-card"><h1>¿Qué sede es esta pantalla?</h1><div class="card"><div class="list">${sedes.map(s => `<button class="row" data-s="${esc(s.id)}"><span class="av" style="background:${colorDe(s.nombre)}">${ico('building', 'i-sm')}</span><div class="tx"><b>${esc(s.nombre)}</b><small>${s.modo === 'impreso' ? 'QR impreso' : 'QR que cambia cada 30 s'}</small></div>${ico('chev')}</button>`).join('') || '<p class="muted">Primero crea una sede en el panel.</p>'}</div></div></div></div>`;
@@ -956,7 +960,7 @@ function admin() {
   if (!pin) return pinGate((p, datos) => adminListo(datos));
   A = LS.get('admin', null);
   if (A) adminListo(A, true);
-  api('apiAdminDatos', pin).then(d => adminListo(d)).catch(e => {
+  api('apiAdminDatos', pin, URL_APP).then(d => adminListo(d)).catch(e => {
     if (/PIN|intentos/.test(e.message)) { LS.del('pin'); sessionPin = ''; toast(e.message, true); return pinGate((p, datos) => adminListo(datos)); }
     if (!A) toast(e.message, true);
   });
@@ -1332,7 +1336,7 @@ function confirmar(titulo, texto, fn) {
       $('[data-si]', w).onclick = async () => { loader(true); try { closeSheet(true); await fn(); } catch (e) { toast(e.message, true); } finally { loader(false); } };
     });
 }
-async function recargarAdmin() { const d = await api('apiAdminDatos', pinActual()); A = d; LS.set('admin', d); APP = Object.assign(APP, d.config || {}); renderAdmin(true); }
+async function recargarAdmin() { const d = await api('apiAdminDatos', pinActual(), URL_APP); A = d; LS.set('admin', d); APP = Object.assign(APP, d.config || {}); renderAdmin(true); }
 function bindAdmin(v) {
   v.onclick = async e => {
     const el = e.target.closest('[data-act],[data-fh],[data-tr],[data-rg],[data-es],[data-imp],[data-regen],[data-cp],[data-et],[data-goto]');
